@@ -19,6 +19,8 @@ export const AIOPS_FLOW = [
   { id: 6, label: '复盘沉淀', path: '/data-agent/aiops?step=6' },
 ] as const
 
+// Each step is a dedicated screen — navigate with ?step=N
+
 export function AgentStepNav({ activeId }: { activeId: number }) {
   const { pathname } = useLocation()
   const showSteps = activeId > 0

@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   BarChart3,
   CheckCircle2,
   ChevronDown,
+  ChevronUp,
   Database,
   FileText,
   MessageSquare,
@@ -15,6 +17,9 @@ import { useApp } from '../context/AppContext'
 
 export function InsightQuery() {
   const { query, toast } = useApp()
+  const [sqlOpen, setSqlOpen] = useState(true)
+  const [validateOpen, setValidateOpen] = useState(false)
+  const [explainOpen, setExplainOpen] = useState(false)
 
   return (
     <div className="mx-auto max-w-[1280px]">
@@ -22,8 +27,7 @@ export function InsightQuery() {
         <ProductTabs active="insight" />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[240px_1fr]">
-        {/* Left sidebar */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[260px_1fr]">
         <aside className="space-y-3">
           <div className="card-soft p-3">
             <div className="mb-2 flex items-center gap-1.5 text-[12px] font-semibold text-slate-700">
@@ -41,23 +45,38 @@ export function InsightQuery() {
               <CheckCircle2 size={13} /> 资产匹配结果
             </div>
             <div className="flex flex-wrap gap-1.5">
-              <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] text-emerald-700">
+              <button
+                type="button"
+                className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] text-emerald-700 hover:ring-1 hover:ring-emerald-200"
+                onClick={() => toast('Arbitrum 资产已匹配 ads_chain_tvl_daily', 'info')}
+              >
                 Arbitrum <span className="text-emerald-500">已匹配</span>
-              </span>
-              <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] text-emerald-700">
+              </button>
+              <button
+                type="button"
+                className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] text-emerald-700 hover:ring-1 hover:ring-emerald-200"
+                onClick={() => toast('Optimism 资产已匹配 ads_chain_net_inflow_daily', 'info')}
+              >
                 Optimism <span className="text-emerald-500">已匹配</span>
-              </span>
+              </button>
             </div>
           </div>
 
-          <div className="card-soft p-3">
-            <div className="mb-2 flex items-center justify-between text-[12px] font-semibold text-slate-700">
+          {/* SQL expandable */}
+          <div className="card-soft overflow-hidden">
+            <button
+              type="button"
+              className="flex w-full items-center justify-between p-3 text-[12px] font-semibold text-slate-700"
+              onClick={() => setSqlOpen((v) => !v)}
+            >
               <span className="flex items-center gap-1">
                 <span className="text-slate-400">&lt;/&gt;</span> 自动生成 SQL
               </span>
-              <ChevronDown size={14} className="text-slate-400" />
-            </div>
-            <pre className="code-block text-[10px] leading-relaxed">{`SELECT
+              {sqlOpen ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}
+            </button>
+            {sqlOpen && (
+              <div className="border-t border-slate-100 px-3 pb-3">
+                <pre className="code-block text-[10px] leading-relaxed">{`SELECT
   date,
   SUM(tvl_usd) AS tvl_usd,
   SUM(net_inflow_usd) AS net_inflow_usd
@@ -66,20 +85,115 @@ WHERE chain IN ('Arbitrum','Optimism')
   AND date >= CURRENT_DATE - INTERVAL 6 DAY
 GROUP BY date, chain
 ORDER BY date ASC, chain;`}</pre>
+                <button
+                  type="button"
+                  className="btn-outline mt-2 w-full !py-1 !text-[11px]"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(
+                        "SELECT date, SUM(tvl_usd) FROM defi.daily_metrics WHERE chain IN ('Arbitrum','Optimism') GROUP BY date",
+                      )
+                    } catch {
+                      /* ignore */
+                    }
+                    toast('SQL 已复制', 'success')
+                  }}
+                >
+                  复制 SQL
+                </button>
+              </div>
+            )}
           </div>
 
-          {[
-            { title: 'SQL 校验状态', value: '通过', ok: true },
-            { title: 'Explain 成本评估', value: '低成本（估算扫描 ~ 38.6 MB）', ok: true },
-          ].map((item) => (
-            <div key={item.title} className="card-soft flex items-center justify-between p-3 text-[12px]">
-              <span className="flex items-center gap-1.5 text-slate-600">
+          {/* SQL 校验 — expandable */}
+          <div className="card-soft overflow-hidden">
+            <button
+              type="button"
+              className="flex w-full items-center justify-between p-3 text-[12px]"
+              onClick={() => setValidateOpen((v) => !v)}
+            >
+              <span className="flex items-center gap-1.5 font-medium text-slate-700">
                 <CheckCircle2 size={13} className="text-emerald-500" />
-                {item.title}
+                SQL 校验状态
+                <span className="rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] text-emerald-600">通过</span>
               </span>
-              <ChevronDown size={14} className="text-slate-400" />
-            </div>
-          ))}
+              {validateOpen ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}
+            </button>
+            {validateOpen && (
+              <div className="space-y-2 border-t border-slate-100 px-3 pb-3 text-[11.5px]">
+                {[
+                  { k: '语法检查', v: '通过', ok: true },
+                  { k: '表权限', v: 'defi.daily_metrics · SELECT OK', ok: true },
+                  { k: '分区裁剪', v: '命中 date 分区 · 7 天', ok: true },
+                  { k: '注入防护', v: '参数化绑定 · 安全', ok: true },
+                  { k: '危险操作', v: '未检测到 DROP/DELETE', ok: true },
+                ].map((r) => (
+                  <div key={r.k} className="flex items-start justify-between gap-2 border-b border-slate-50 py-1.5 last:border-0">
+                    <span className="text-slate-500">{r.k}</span>
+                    <span className="text-right font-medium text-emerald-600">{r.v}</span>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  className="btn-outline w-full !py-1 !text-[11px]"
+                  onClick={() => toast('已重新运行 SQL 校验', 'success')}
+                >
+                  重新校验
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Explain — expandable */}
+          <div className="card-soft overflow-hidden">
+            <button
+              type="button"
+              className="flex w-full items-center justify-between p-3 text-[12px]"
+              onClick={() => setExplainOpen((v) => !v)}
+            >
+              <span className="flex items-center gap-1.5 font-medium text-slate-700">
+                <CheckCircle2 size={13} className="text-emerald-500" />
+                Explain 成本评估
+              </span>
+              {explainOpen ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}
+            </button>
+            {explainOpen && (
+              <div className="space-y-2 border-t border-slate-100 px-3 pb-3 text-[11.5px]">
+                <div className="rounded-lg bg-emerald-50 px-2 py-1.5 text-emerald-700">
+                  低成本 · 估算扫描 ~ 38.6 MB
+                </div>
+                {[
+                  { k: '预估行数', v: '1.2M rows' },
+                  { k: '预估 CPU', v: '0.8 vCore·s' },
+                  { k: '预估内存', v: '256 MB' },
+                  { k: 'Join 策略', v: 'Broadcast Hash Join' },
+                  { k: '聚合', v: 'Streaming Aggregate' },
+                  { k: '并行度', v: '16' },
+                ].map((r) => (
+                  <div key={r.k} className="flex justify-between border-b border-slate-50 py-1">
+                    <span className="text-slate-500">{r.k}</span>
+                    <span className="font-medium text-slate-700">{r.v}</span>
+                  </div>
+                ))}
+                <pre className="max-h-28 overflow-auto rounded-lg bg-slate-900 p-2 font-mono text-[9px] text-slate-300">
+{`OLAP SCAN defi.daily_metrics
+  partitions: p20250512..p20250518
+  predicates: chain IN (...)
+HASH AGGREGATE
+  group by: date, chain
+  functions: sum(tvl_usd), sum(net_inflow_usd)
+EXCHANGE GATHER`}
+                </pre>
+                <button
+                  type="button"
+                  className="btn-outline w-full !py-1 !text-[11px]"
+                  onClick={() => toast('已刷新 Explain 计划', 'info')}
+                >
+                  刷新 Explain
+                </button>
+              </div>
+            )}
+          </div>
 
           <div className="card-soft space-y-2 p-3 text-[12px]">
             <div className="flex justify-between">
@@ -97,7 +211,6 @@ ORDER BY date ASC, chain;`}</pre>
           </div>
         </aside>
 
-        {/* Main */}
         <div>
           <StepBar
             className="mb-4 justify-start"
@@ -142,7 +255,6 @@ ORDER BY date ASC, chain;`}</pre>
             </div>
           </div>
 
-          {/* KPI cards */}
           <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
             {[
               { label: 'Arbitrum TVL', value: '$2.47B', sub: '最新（2025-05-18）', icon: <Database size={16} className="text-blue-500" />, tone: '' },
@@ -150,18 +262,22 @@ ORDER BY date ASC, chain;`}</pre>
               { label: 'Arbitrum 净流入', value: '+$12.6M', sub: '最新（2025-05-18）', icon: <span className="text-emerald-500">↗</span>, tone: 'text-emerald-600' },
               { label: 'Optimism 净流入', value: '-$3.2M', sub: '最新（2025-05-18）', icon: <span className="text-red-500">↘</span>, tone: 'text-red-500' },
             ].map((k) => (
-              <div key={k.label} className="card p-3">
+              <button
+                key={k.label}
+                type="button"
+                className="card p-3 text-left transition hover:border-orange-200"
+                onClick={() => toast(`${k.label}：${k.value}`, 'info')}
+              >
                 <div className="mb-1 flex items-center gap-1.5 text-[11px] text-slate-500">
                   {k.icon}
                   {k.label}
                 </div>
                 <div className={`text-xl font-bold ${k.tone || 'text-slate-900'}`}>{k.value}</div>
                 <div className="text-[10px] text-slate-400">{k.sub}</div>
-              </div>
+              </button>
             ))}
           </div>
 
-          {/* Table */}
           <div className="card mb-4 overflow-hidden">
             <div className="flex items-center gap-1.5 border-b border-slate-100 px-4 py-2.5 text-[13px] font-semibold text-slate-800">
               每日结果（最近 7 天）
@@ -179,23 +295,32 @@ ORDER BY date ASC, chain;`}</pre>
               </thead>
               <tbody>
                 {dailyResults.map((r) => (
-                  <tr key={r.date}>
+                  <tr
+                    key={r.date}
+                    className="cursor-pointer hover:bg-orange-50/40"
+                    onClick={() => toast(`查看 ${r.date} 明细`, 'info')}
+                  >
                     <td>{r.date}</td>
                     <td>{r.arbTvl}</td>
                     <td>{r.opTvl}</td>
-                    <td className="text-emerald-600 font-medium">{r.arbFlow}</td>
-                    <td className="text-red-500 font-medium">{r.opFlow}</td>
+                    <td className="font-medium text-emerald-600">{r.arbFlow}</td>
+                    <td className="font-medium text-red-500">{r.opFlow}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
 
-          {/* Chart */}
           <div className="card p-4">
             <div className="mb-2 flex items-center justify-between text-[13px] font-semibold text-slate-800">
               TVL 与净流入趋势（最近 7 天）
-              <button className="text-slate-400">⛶</button>
+              <button
+                type="button"
+                className="text-slate-400 hover:text-orange-500"
+                onClick={() => toast('已全屏图表（Mock）', 'info')}
+              >
+                ⛶
+              </button>
             </div>
             <MultiMetricChart data={multiMetricTrend} height={220} />
           </div>

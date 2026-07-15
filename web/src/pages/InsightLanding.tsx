@@ -15,9 +15,8 @@ import {
   Zap,
 } from 'lucide-react'
 import { ProductTabs } from '../components/layout/ProductTabs'
-import { SparkArea } from '../components/charts/MiniCharts'
-import { FloatBadge, FloatCard, OrbitDecor } from '../components/effects/FloatCard'
-import { tokenInflow, tvlSpark, volumeSpark } from '../data/mock'
+import { DecorCarousel } from '../components/effects/DecorCarousel'
+import { OrbitDecor } from '../components/effects/FloatCard'
 import { useApp } from '../context/AppContext'
 
 const CAPABILITIES = [
@@ -40,7 +39,7 @@ const FEATURES = [
 
 export function InsightLanding() {
   const navigate = useNavigate()
-  const { query, setQuery, toast, range, setRange } = useApp()
+  const { query, setQuery, toast } = useApp()
   const [input, setInput] = useState(query || '查询过去 7 天 Arbitrum 上净流入最高的 20 个代币')
 
   const submit = (q?: string) => {
@@ -60,107 +59,10 @@ export function InsightLanding() {
         <ProductTabs active="insight" />
       </div>
 
-      <div className="relative">
+      <div className="relative min-h-[620px]">
         <OrbitDecor />
-
-        <div className="pointer-events-none absolute left-0 top-4 z-20 hidden w-[210px] space-y-3 xl:block">
-          <FloatCard delay={0} className="p-3" to="/insight/query">
-            <div className="mb-1 flex items-center gap-1.5 text-[11px] text-slate-500">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-50 text-[10px] font-bold text-blue-600">◆</span>
-              Arbitrum TVL
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-xl font-bold text-slate-900">$2.48B</span>
-              <span className="text-[11px] font-medium text-emerald-500">+12.35%</span>
-            </div>
-            <SparkArea data={tvlSpark} color="#f97316" height={52} />
-          </FloatCard>
-
-          <FloatCard delay={0.5} className="p-3">
-            <div className="mb-1 text-[11px] font-medium text-slate-600">链上交易量趋势</div>
-            <div className="mb-1 flex gap-1 text-[10px]">
-              {(['7D', '30D', '90D'] as const).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  className={`rounded px-1.5 py-0.5 ${range === t ? 'bg-orange-50 text-orange-600' : 'text-slate-400 hover:text-slate-600'}`}
-                  onClick={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    setRange(t)
-                    toast(`已切换到 ${t} 区间`, 'info')
-                  }}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-lg font-bold">
-                {range === '7D' ? '$4.12B' : range === '30D' ? '$15.32B' : '$48.7B'}
-              </span>
-              <span className="text-[11px] text-emerald-500">+18.62%</span>
-            </div>
-            <SparkArea data={volumeSpark} color="#f97316" height={48} />
-          </FloatCard>
-
-          <div className="flex flex-col gap-2">
-            <FloatBadge delay={0.2} to="/insight/query">
-              <span className="h-2 w-2 rounded-full bg-violet-400" /> Polygon
-            </FloatBadge>
-            <FloatBadge delay={0.5} to="/insight/query">
-              <span className="h-2 w-2 rounded-full bg-blue-400" /> Base
-            </FloatBadge>
-            <FloatBadge delay={0.8} to="/insight/query">
-              <span className="h-2 w-2 rounded-full bg-amber-400" /> BNB Chain
-            </FloatBadge>
-          </div>
-        </div>
-
-        <div className="pointer-events-none absolute right-0 top-4 z-20 hidden w-[220px] space-y-3 xl:block">
-          <FloatCard delay={0.15} className="p-3" to="/insight/query">
-            <div className="mb-2 flex items-center justify-between">
-              <div className="flex items-center gap-1 text-[11px] font-medium text-emerald-600">
-                <CheckCircle2 size={13} /> Query Result
-              </div>
-              <span className="rounded bg-orange-50 px-1.5 py-0.5 text-[10px] text-orange-600">命中模板</span>
-            </div>
-            <div className="space-y-1 text-[11px] text-slate-500">
-              <div className="flex justify-between">
-                <span>查询耗时</span>
-                <span className="font-semibold text-slate-800">1.32s</span>
-              </div>
-              <div className="flex justify-between">
-                <span>数据范围</span>
-                <span className="text-slate-700">2024-05-12 ~ 18</span>
-              </div>
-            </div>
-            <span className="mt-2 inline-block text-[11px] font-medium text-orange-500">查看详情 →</span>
-          </FloatCard>
-
-          <FloatCard delay={0.55} className="p-3" to="/insight/query">
-            <div className="mb-2 flex items-center justify-between text-[11px]">
-              <span className="font-medium text-slate-700">Token 净流入 (7D)</span>
-              <span className="rounded-full bg-red-50 px-1.5 py-0.5 text-[10px] text-red-500">OP</span>
-            </div>
-            <div className="space-y-1.5">
-              {tokenInflow.map((t) => (
-                <div key={t.token} className="flex items-center gap-2 text-[11px]">
-                  <span className="w-3 text-slate-400">{t.rank}</span>
-                  <span
-                    className="flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold text-white"
-                    style={{ background: t.color }}
-                  >
-                    {t.token[0]}
-                  </span>
-                  <span className="flex-1 font-medium text-slate-700">{t.token}</span>
-                  <span className="text-slate-600">{t.amount}</span>
-                </div>
-              ))}
-            </div>
-            <span className="mt-2 inline-block text-[11px] font-medium text-orange-500">查看完整榜单 →</span>
-          </FloatCard>
-        </div>
+        <DecorCarousel side="left" intervalMs={3400} />
+        <DecorCarousel side="right" intervalMs={4000} />
 
         <div className="relative z-10 mx-auto max-w-[720px] pt-4 text-center">
           <h1 className="text-[32px] font-extrabold tracking-tight text-slate-900 sm:text-[38px]">

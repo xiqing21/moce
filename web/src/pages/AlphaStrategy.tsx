@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react'
 import {
   Play,
   RefreshCw,
@@ -17,6 +18,35 @@ import { drawdownCurve, equityCurve, factorBuckets } from '../data/mock'
 
 export function AlphaStrategy() {
   const { toast, toggleWatch } = useApp()
+  const [hypothesis, setHypothesis] = useState(
+    '当某协议 TVL 连续 3 天增长，且鲸鱼净流入增加时，相关代币未来 7 天表现如何？',
+  )
+  const [timeRange, setTimeRange] = useState('2024-05-01 – 2025-05-18')
+  const [universe, setUniverse] = useState('Top 200 协议代币')
+  const [factors, setFactors] = useState('TVL, 鲸鱼净流入, 链上活跃度…')
+  const [horizon, setHorizon] = useState('7 天')
+  const [method, setMethod] = useState('事件驱动回测 (Event Study)')
+  const [benchmark, setBenchmark] = useState('BTC, ETH, 等权组合')
+  const [note, setNote] = useState('')
+  const [ran, setRan] = useState(false)
+
+  const scale = horizon.includes('14') ? 1.2 : horizon.includes('30') ? 1.45 : 1
+  const equity = useMemo(
+    () =>
+      equityCurve.map((d) => ({
+        ...d,
+        strategy: Number(d.strategy) * scale,
+      })),
+    [scale],
+  )
+
+  const runBacktest = () => {
+    setRan(true)
+    toast(
+      `回测完成：${universe} · 窗口 ${horizon} · ${method} · 样本 2,842 · Sharpe ${(1.72 * scale).toFixed(2)}`,
+      'success',
+    )
+  }
 
   return (
     <div className="mx-auto max-w-[1280px]">
@@ -37,7 +67,7 @@ export function AlphaStrategy() {
           <button
             type="button"
             className="btn-primary !py-1.5 !text-[11px]"
-            onClick={() => toast('回测完成：样本 2,842 · Sharpe 1.72 · 耗时 3.1s', 'success')}
+            onClick={runBacktest}
           >
             <Play size={12} /> 运行回测
           </button>
@@ -71,11 +101,22 @@ export function AlphaStrategy() {
           <div className="card-soft p-3">
             <div className="mb-2 text-[12px] font-semibold text-slate-700">1 策略假设（自然语言）</div>
             <div className="rounded-xl border border-orange-200 bg-orange-50/30 p-2.5">
-              <p className="text-[12px] leading-relaxed text-slate-700">
-                当某协议 TVL 连续 3 天增长，且鲸鱼净流入增加时，相关代币未来 7 天表现如何？
-              </p>
+              <textarea
+                className="min-h-[80px] w-full resize-none bg-transparent text-[12px] leading-relaxed text-slate-700 outline-none"
+                value={hypothesis}
+                onChange={(e) => setHypothesis(e.target.value)}
+              />
               <div className="mt-2 flex justify-end">
-                <button className="flex h-6 w-6 items-center justify-center rounded-md bg-orange-500 text-white text-[10px]">✦</button>
+                <button
+                  type="button"
+                  className="flex h-6 w-6 items-center justify-center rounded-md bg-orange-500 text-[10px] text-white hover:bg-orange-600"
+                  onClick={() => {
+                    toast('已解析策略假设并填充默认参数', 'success')
+                    runBacktest()
+                  }}
+                >
+                  ✦
+                </button>
               </div>
             </div>
           </div>
@@ -83,28 +124,96 @@ export function AlphaStrategy() {
           <div className="card-soft p-3">
             <div className="mb-2 text-[12px] font-semibold text-slate-700">2 参数配置</div>
             <div className="space-y-2 text-[11px]">
-              {[
-                ['时间范围', '2024-05-01 – 2025-05-18'],
-                ['研究对象', 'Top 200 协议代币'],
-                ['因子集合', 'TVL, 鲸鱼净流入, 链上活跃度…'],
-                ['预测窗口', '7 天'],
-                ['回测方式', '事件驱动回测 (Event Study)'],
-                ['基准对照', 'BTC, ETH, 等权组合'],
-              ].map(([l, v]) => (
-                <div key={l}>
-                  <div className="mb-0.5 text-slate-400">{l}</div>
-                  <div className="rounded-lg border border-slate-200 px-2 py-1 text-slate-700">{v} ▾</div>
+              <Field
+                label="时间范围"
+                value={timeRange}
+                options={['2024-05-01 – 2025-05-18', '2024-01-01 – 2024-12-31', '2023-01-01 – 2025-05-18', '近 180 天']}
+                onChange={(v) => {
+                  setTimeRange(v)
+                  toast(`时间范围：${v}`, 'info')
+                }}
+              />
+              <Field
+                label="研究对象"
+                value={universe}
+                options={['Top 200 协议代币', 'Top 50 协议代币', 'L2 原生代币', 'DeFi Bluechips']}
+                onChange={(v) => {
+                  setUniverse(v)
+                  toast(`研究对象：${v}`, 'info')
+                }}
+              />
+              <Field
+                label="因子集合"
+                value={factors}
+                options={[
+                  'TVL, 鲸鱼净流入, 链上活跃度…',
+                  'TVL only',
+                  '鲸鱼净流入 + 资金费率',
+                  '活跃地址 + Gas + TVL',
+                ]}
+                onChange={(v) => {
+                  setFactors(v)
+                  toast(`因子：${v}`, 'info')
+                }}
+              />
+              <Field
+                label="预测窗口"
+                value={horizon}
+                options={['3 天', '7 天', '14 天', '30 天']}
+                onChange={(v) => {
+                  setHorizon(v)
+                  toast(`预测窗口：${v}`, 'info')
+                }}
+              />
+              <Field
+                label="回测方式"
+                value={method}
+                options={['事件驱动回测 (Event Study)', '滚动窗口回测', 'Walk-forward', '蒙特卡洛模拟']}
+                onChange={(v) => {
+                  setMethod(v)
+                  toast(`回测方式：${v}`, 'info')
+                }}
+              />
+              <Field
+                label="基准对照"
+                value={benchmark}
+                options={['BTC, ETH, 等权组合', '仅 BTC', '仅 ETH', '等权组合', '市场中性']}
+                onChange={(v) => {
+                  setBenchmark(v)
+                  toast(`基准：${v}`, 'info')
+                }}
+              />
+              <button type="button" className="btn-primary w-full !py-1.5 !text-[11px]" onClick={runBacktest}>
+                应用参数并回测
+              </button>
+              {ran && (
+                <div className="rounded-lg bg-emerald-50 px-2 py-1 text-[10px] text-emerald-700">
+                  ✓ 收益曲线已按窗口 {horizon} 重算
                 </div>
-              ))}
+              )}
             </div>
           </div>
 
           <div className="card-soft p-3">
             <div className="mb-2 flex items-center justify-between text-[12px] font-semibold">
               3 已保存模板
-              <span className="text-[10px] font-normal text-orange-500">管理 ›</span>
+              <button
+                type="button"
+                className="text-[10px] font-normal text-orange-500"
+                onClick={() => toast('模板管理：3 个模板（Mock）', 'info')}
+              >
+                管理 ›
+              </button>
             </div>
-            <div className="rounded-lg border border-slate-100 bg-slate-50 p-2">
+            <button
+              type="button"
+              className="w-full rounded-lg border border-slate-100 bg-slate-50 p-2 text-left hover:border-orange-200"
+              onClick={() => {
+                setHypothesis('当某协议 TVL 连续 3 天增长，且鲸鱼净流入增加时，相关代币未来 7 天表现如何？')
+                setHorizon('7 天')
+                toast('已加载模板：TVL 增长 + 鲸鱼净流入', 'success')
+              }}
+            >
               <div className="flex items-center justify-between">
                 <span className="text-[11.5px] font-medium text-slate-800">TVL 增长 + 鲸鱼净流入 (7D)</span>
                 <span className="rounded bg-emerald-50 px-1 text-[9px] text-emerald-600">公开</span>
@@ -115,11 +224,17 @@ export function AlphaStrategy() {
                 <span className="text-slate-400">最近运行：2025-05-17 22:15</span>
                 <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-emerald-600">回测完成</span>
               </div>
-            </div>
+            </button>
             <div className="mt-2">
               <div className="mb-0.5 text-[11px] text-slate-400">策略备注（可选）</div>
-              <textarea className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-[11px] text-slate-600 outline-none" rows={2} placeholder="记录策略思路、假设依据或特殊说明…" />
-              <div className="text-right text-[9px] text-slate-300">0 / 500</div>
+              <textarea
+                className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-[11px] text-slate-600 outline-none focus:border-orange-300"
+                rows={2}
+                placeholder="记录策略思路、假设依据或特殊说明…"
+                value={note}
+                onChange={(e) => setNote(e.target.value.slice(0, 500))}
+              />
+              <div className="text-right text-[9px] text-slate-300">{note.length} / 500</div>
             </div>
           </div>
         </aside>
@@ -134,8 +249,10 @@ export function AlphaStrategy() {
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <div className="card p-2.5">
               <div className="mb-1 text-[11.5px] font-semibold">1 累计收益曲线</div>
-              <EquityChart data={equityCurve} height={140} />
-              <div className="text-right text-[10px] font-medium text-orange-600">+112.35%</div>
+              <EquityChart data={equity} height={140} />
+              <div className="text-right text-[10px] font-medium text-orange-600">
+                +{(112.35 * scale).toFixed(2)}%
+              </div>
             </div>
             <div className="card p-2.5">
               <div className="mb-1 text-[11.5px] font-semibold">2 回撤曲线</div>
@@ -327,5 +444,34 @@ export function AlphaStrategy() {
         ℹ 研究工作台用于发现与验证策略假设，不直接自动执行交易。
       </p>
     </div>
+  )
+}
+
+function Field({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string
+  value: string
+  options: string[]
+  onChange: (v: string) => void
+}) {
+  return (
+    <label className="block">
+      <div className="mb-0.5 text-slate-400">{label}</div>
+      <select
+        className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-slate-700 outline-none focus:border-orange-300"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        {options.map((o) => (
+          <option key={o} value={o}>
+            {o}
+          </option>
+        ))}
+      </select>
+    </label>
   )
 }

@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Download,
@@ -23,7 +24,37 @@ import {
 } from '../data/mock'
 
 export function AlphaPrediction() {
-  const { toast, toggleWatch } = useApp()
+  const { toast, toggleWatch, setQuery } = useApp()
+  const [prompt, setPrompt] = useState(
+    '分析某预测市场过去 7 天的赔率变化、成交量放大原因与大户布局行为',
+  )
+  const [category, setCategory] = useState('加密市场')
+  const [platform, setPlatform] = useState('Polymarket, Predict.fun, 其他')
+  const [timeRange, setTimeRange] = useState('过去 7 天')
+  const [eventType, setEventType] = useState('宏观事件')
+  const [risk, setRisk] = useState('中等风险')
+  const [analyzed, setAnalyzed] = useState(false)
+
+  const scale = timeRange.includes('30') ? 1.35 : timeRange.includes('24') ? 0.55 : 1
+
+  const oddsData = useMemo(
+    () =>
+      oddsTrend.map((d) => ({
+        ...d,
+        poly: d.poly * (platform.includes('Predict') && !platform.includes('Polymarket') ? 0.9 : 1),
+        predict: d.predict * scale,
+      })),
+    [platform, scale],
+  )
+
+  const runAnalysis = () => {
+    setQuery(prompt)
+    setAnalyzed(true)
+    toast(
+      `分析完成：${category} · ${platform.split(',')[0]} · ${timeRange} · ${eventType} · ${risk}`,
+      'success',
+    )
+  }
 
   return (
     <div className="mx-auto max-w-[1280px]">
@@ -95,28 +126,111 @@ export function AlphaPrediction() {
           <div className="card-soft p-3">
             <div className="mb-2 text-[12px] font-semibold text-slate-700">分析入口</div>
             <div className="rounded-xl border border-orange-200 bg-orange-50/40 p-2.5">
-              <p className="text-[11.5px] leading-relaxed text-slate-700">
-                分析某预测市场过去 7 天的赔率变化、成交量放大原因与大户布局行为
-              </p>
+              <textarea
+                className="min-h-[72px] w-full resize-none bg-transparent text-[11.5px] leading-relaxed text-slate-700 outline-none"
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+              />
               <div className="mt-2 flex justify-end">
-                <button className="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-500 text-white">
+                <button
+                  type="button"
+                  className="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-500 text-white hover:bg-orange-600"
+                  onClick={runAnalysis}
+                >
                   <Send size={12} />
                 </button>
               </div>
             </div>
+            {analyzed && (
+              <div className="mt-2 rounded-lg bg-emerald-50 px-2 py-1 text-[10px] text-emerald-700">
+                ✓ 已按当前筛选刷新图表
+              </div>
+            )}
             <div className="mt-2 space-y-2 text-[11px]">
-              {[
-                ['市场分类', '加密市场'],
-                ['平台', 'Polymarket, Predict.fun, 其他'],
-                ['时间范围', '过去 7 天'],
-                ['事件类型', '宏观事件'],
-                ['风险等级', '中等风险'],
-              ].map(([l, v]) => (
-                <div key={l}>
-                  <div className="mb-0.5 text-slate-400">{l}</div>
-                  <div className="rounded-lg border border-slate-200 px-2 py-1 text-slate-700">{v} ▾</div>
-                </div>
-              ))}
+              <label className="block">
+                <div className="mb-0.5 text-slate-400">市场分类</div>
+                <select
+                  className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-slate-700 outline-none focus:border-orange-300"
+                  value={category}
+                  onChange={(e) => {
+                    setCategory(e.target.value)
+                    toast(`市场分类：${e.target.value}`, 'info')
+                  }}
+                >
+                  {['加密市场', '政治选举', '体育赛事', '宏观宏观', '科技产品'].map((o) => (
+                    <option key={o}>{o}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <div className="mb-0.5 text-slate-400">平台</div>
+                <select
+                  className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-slate-700 outline-none focus:border-orange-300"
+                  value={platform}
+                  onChange={(e) => {
+                    setPlatform(e.target.value)
+                    toast(`平台：${e.target.value}`, 'info')
+                  }}
+                >
+                  {[
+                    'Polymarket, Predict.fun, 其他',
+                    'Polymarket',
+                    'Predict.fun',
+                    'Augur',
+                    '全部平台',
+                  ].map((o) => (
+                    <option key={o}>{o}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <div className="mb-0.5 text-slate-400">时间范围</div>
+                <select
+                  className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-slate-700 outline-none focus:border-orange-300"
+                  value={timeRange}
+                  onChange={(e) => {
+                    setTimeRange(e.target.value)
+                    toast(`时间范围：${e.target.value}`, 'info')
+                  }}
+                >
+                  {['过去 24 小时', '过去 7 天', '过去 30 天', '过去 90 天'].map((o) => (
+                    <option key={o}>{o}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <div className="mb-0.5 text-slate-400">事件类型</div>
+                <select
+                  className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-slate-700 outline-none focus:border-orange-300"
+                  value={eventType}
+                  onChange={(e) => {
+                    setEventType(e.target.value)
+                    toast(`事件类型：${e.target.value}`, 'info')
+                  }}
+                >
+                  {['宏观事件', '协议升级', '监管新闻', '链上异动', '社交媒体'].map((o) => (
+                    <option key={o}>{o}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <div className="mb-0.5 text-slate-400">风险等级</div>
+                <select
+                  className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-slate-700 outline-none focus:border-orange-300"
+                  value={risk}
+                  onChange={(e) => {
+                    setRisk(e.target.value)
+                    toast(`风险等级：${e.target.value}`, 'info')
+                  }}
+                >
+                  {['低风险', '中等风险', '高风险', '全部'].map((o) => (
+                    <option key={o}>{o}</option>
+                  ))}
+                </select>
+              </label>
+              <button type="button" className="btn-primary w-full !py-1.5 !text-[11px]" onClick={runAnalysis}>
+                应用筛选并分析
+              </button>
             </div>
           </div>
           <div className="card-soft p-3">
@@ -159,7 +273,7 @@ export function AlphaPrediction() {
             <div className="card p-2.5">
               <div className="mb-1 text-[11.5px] font-semibold">1 赔率趋势图</div>
               <DualLineChart
-                data={oddsTrend}
+                data={oddsData}
                 lines={[
                   { key: 'poly', color: '#f97316', name: 'Polymarket (YES)' },
                   { key: 'predict', color: '#3b82f6', name: 'Predict.fun (YES)' },

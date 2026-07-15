@@ -1,24 +1,20 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import {
   ArrowRight,
   Database,
   FileText,
   Lock,
-  MessageSquare,
-  Network,
   Shield,
   Sparkles,
   Zap,
 } from 'lucide-react'
 import { ProductTabs } from '../components/layout/ProductTabs'
 import { AlphaIcon, DataAgentIcon, InsightIcon } from '../components/ui/MoceLogo'
-import { HorizontalBars, SparkLine } from '../components/charts/MiniCharts'
-import { FloatBadge, FloatCard, OrbitDecor } from '../components/effects/FloatCard'
-import { oddsSpark, tvlTopChains } from '../data/mock'
+import { DecorCarousel } from '../components/effects/DecorCarousel'
+import { FloatBadge, OrbitDecor } from '../components/effects/FloatCard'
 import { useApp } from '../context/AppContext'
 
 export function Home() {
-  const navigate = useNavigate()
   const { toast, setQuery } = useApp()
 
   return (
@@ -27,116 +23,11 @@ export function Home() {
         <ProductTabs active="none" />
       </div>
 
-      <div className="relative">
+      <div className="relative min-h-[640px]">
         <OrbitDecor />
+        <DecorCarousel side="left" intervalMs={3600} />
+        <DecorCarousel side="right" intervalMs={4200} />
 
-        {/* Left floating widgets */}
-        <div className="pointer-events-none absolute left-0 top-6 z-20 hidden w-[210px] space-y-3 xl:block">
-          <FloatCard delay={0} className="p-3" to="/insight">
-            <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
-              <MessageSquare size={12} className="text-orange-400" />
-              Ask a Question
-            </div>
-            <p className="text-[12px] leading-snug text-slate-700">
-              Which chains had the highest TVL growth in the last 7 days?
-            </p>
-            <div className="mt-2 flex justify-end">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-orange-500 text-white shadow-md shadow-orange-200">
-                <ArrowRight size={12} className="-rotate-45" />
-              </span>
-            </div>
-          </FloatCard>
-
-          <FloatCard delay={0.4} className="p-3" onClick={() => navigate('/insight/query')}>
-            <div className="mb-2 flex items-center justify-between text-[11px]">
-              <span className="font-medium text-slate-600">TVL Top Chains</span>
-              <span className="text-slate-400">7D Change</span>
-            </div>
-            <HorizontalBars items={tvlTopChains} />
-          </FloatCard>
-
-          <FloatCard delay={0.8} className="p-3" to="/insight/report">
-            <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
-              <FileText size={12} className="text-orange-400" />
-              Smart Report
-            </div>
-            <div className="flex items-start gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-50">
-                <FileText size={14} className="text-orange-500" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-[12px] font-medium text-slate-800">Weekly DeFi Overview</div>
-                <div className="text-[10px] text-slate-400">May 12 – May 18, 2024</div>
-              </div>
-            </div>
-            <span className="btn-orange-outline mt-2 flex w-full !py-1.5 text-[11px]">
-              View Report <ArrowRight size={12} />
-            </span>
-          </FloatCard>
-        </div>
-
-        {/* Right floating widgets */}
-        <div className="pointer-events-none absolute right-0 top-6 z-20 hidden w-[210px] space-y-3 xl:block">
-          <FloatCard delay={0.2} className="p-3" to="/data-agent/lineage">
-            <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
-              <Network size={12} className="text-violet-400" />
-              Lineage Explorer
-            </div>
-            <div className="flex flex-col items-center gap-1 text-[10px]">
-              {['raw_tx', 'cleansed_tx'].map((n, i) => (
-                <div key={n} className="contents">
-                  {i > 0 && <div className="lineage-pulse h-3 w-px bg-violet-300" />}
-                  <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">{n}</div>
-                </div>
-              ))}
-              <div className="lineage-pulse h-3 w-px bg-violet-300" />
-              <div className="flex gap-1">
-                <div className="rounded-md border border-violet-200 bg-violet-50 px-2 py-1 text-violet-600">fact_transfer</div>
-                <div className="rounded-md border border-violet-200 bg-violet-50 px-2 py-1 text-violet-600">dim_address</div>
-              </div>
-              <div className="lineage-pulse h-3 w-px bg-orange-300" />
-              <div className="rounded-md border border-orange-200 bg-orange-50 px-3 py-1 text-orange-600">agg_daily_flow</div>
-            </div>
-          </FloatCard>
-
-          <FloatCard delay={0.6} className="p-3" to="/alpha">
-            <div className="mb-1 flex items-center justify-between text-[11px]">
-              <span className="font-medium text-slate-600">Odds Trend</span>
-            </div>
-            <div className="mb-0.5 text-[11px] text-slate-500">BTC ETF Approval</div>
-            <div className="flex items-end justify-between">
-              <span className="text-2xl font-bold text-slate-800">68%</span>
-              <span className="mb-1 text-[11px] font-medium text-emerald-500">+8% 24h</span>
-            </div>
-            <SparkLine data={oddsSpark} color="#f97316" height={44} />
-            <div className="mt-0.5 flex justify-between text-[9px] text-slate-400">
-              <span>May 12</span>
-              <span>May 15</span>
-              <span>May 18</span>
-            </div>
-          </FloatCard>
-
-          <FloatCard
-            delay={1}
-            className="p-3"
-            onClick={() => toast('数据源目录：已连接 16 条链上源 + 公共数据集', 'info')}
-          >
-            <div className="mb-2 text-[11px] font-medium text-slate-600">Data Sources</div>
-            <div className="flex items-center gap-1.5">
-              {['◆', '◎', '◉', 'OP'].map((s, i) => (
-                <span
-                  key={i}
-                  className="flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-[10px] font-bold text-slate-600"
-                >
-                  {s}
-                </span>
-              ))}
-              <span className="ml-1 text-[11px] font-medium text-slate-500">+12</span>
-            </div>
-          </FloatCard>
-        </div>
-
-        {/* Center hero */}
         <div className="relative z-10 mx-auto max-w-[860px] pt-2 text-center">
           <h1 className="text-[34px] font-extrabold tracking-tight text-slate-900 sm:text-[40px]">
             One Brand, <span className="text-moce-orange">Three Intelligence Layers</span>
@@ -210,19 +101,22 @@ export function Home() {
             </Link>
           </div>
 
-          {/* Flow pipeline — clickable */}
           <div className="mt-6 flex flex-wrap items-center justify-center gap-1 rounded-2xl border border-slate-200/80 bg-white/90 px-4 py-3 shadow-sm backdrop-blur">
             {[
               { to: '/insight', icon: <InsightIcon className="h-5 w-5" />, label: 'MOCE Insight' },
               { to: '/data-request', icon: <FileText size={14} className="text-orange-500" />, label: 'Data Request' },
               { to: '/data-agent/intake', icon: <DataAgentIcon className="h-5 w-5" />, label: 'MOCE Data Agent' },
               { to: '/data-agent/deploy', icon: <Database size={14} className="text-blue-500" />, label: 'New Data Asset' },
-              { to: '/alpha', icon: (
-                <span className="flex gap-0.5">
-                  <InsightIcon className="h-5 w-5" />
-                  <AlphaIcon className="h-5 w-5" />
-                </span>
-              ), label: 'Insight / Alpha' },
+              {
+                to: '/alpha',
+                icon: (
+                  <span className="flex gap-0.5">
+                    <InsightIcon className="h-5 w-5" />
+                    <AlphaIcon className="h-5 w-5" />
+                  </span>
+                ),
+                label: 'Insight / Alpha',
+              },
             ].map((item, i) => (
               <div key={item.label} className="flex items-center gap-1">
                 {i > 0 && <ArrowRight size={14} className="mx-1 text-slate-300" />}
@@ -243,10 +137,18 @@ export function Home() {
           </div>
 
           <div className="mt-5 flex flex-wrap justify-center gap-2">
-            <FloatBadge delay={0.1} to="/insight">✦ 试一下 Insight</FloatBadge>
-            <FloatBadge delay={0.3} to="/data-agent/intake">◈ Data Agent 全流程</FloatBadge>
-            <FloatBadge delay={0.5} to="/alpha/strategy">A 策略回测</FloatBadge>
-            <FloatBadge delay={0.7} to="/pricing">$ 查看定价</FloatBadge>
+            <FloatBadge delay={0.1} to="/insight">
+              ✦ 试一下 Insight
+            </FloatBadge>
+            <FloatBadge delay={0.3} to="/data-agent/intake">
+              ◈ Data Agent 全流程
+            </FloatBadge>
+            <FloatBadge delay={0.5} to="/alpha/strategy">
+              A 策略回测
+            </FloatBadge>
+            <FloatBadge delay={0.7} to="/pricing">
+              $ 查看定价
+            </FloatBadge>
           </div>
 
           <div className="mt-6 flex flex-wrap items-center justify-center gap-8 text-[11.5px] text-slate-500">
