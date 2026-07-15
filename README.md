@@ -72,6 +72,8 @@ moce/
 - [产品与路由说明](./docs/PRODUCT.md)  
 - [坑点与经验总结](./docs/PITFALLS.md)  
 - [Web 子项目说明](./web/README.md)  
+- **可复用 Skill**：`prototype-to-interactive`（用户级 `~/.agents/skills/prototype-to-interactive-1.0.0/`，本仓库 `.grok/skills/prototype-to-interactive/`）  
+  - 触发：原型复刻、1:1 复刻、贴画、交互 Mock、`/prototype-to-interactive`
 
 ## GitHub
 
