@@ -9,7 +9,7 @@ export function Layout() {
   const { dark } = useApp()
 
   return (
-    <div className={`relative min-h-screen ${dark ? 'dark-mode' : ''}`}>
+    <div className={`app-shell relative min-h-screen ${dark ? 'is-dark' : 'is-light'}`}>
       <Background />
       <div className="relative z-10 flex min-h-screen flex-col pb-16">
         <Header />

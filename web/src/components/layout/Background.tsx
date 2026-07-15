@@ -1,9 +1,9 @@
 /** Animated network / particle background matching prototype aesthetics */
 export function Background() {
   return (
-    <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden>
-      <div className="absolute inset-0 bg-[#fafafa]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(255,237,213,0.75),transparent)]" />
+    <div className="bg-layer pointer-events-none fixed inset-0 overflow-hidden" aria-hidden>
+      <div className="bg-base absolute inset-0" />
+      <div className="bg-warm absolute inset-0" />
 
       <div className="absolute -left-20 top-1/4 h-[480px] w-[480px] rounded-full bg-[radial-gradient(circle,rgba(251,146,60,0.14),transparent_70%)]" style={{ animation: 'pulse-glow 6s ease-in-out infinite' }} />
       <div className="absolute -right-16 top-10 h-[520px] w-[520px] rounded-full bg-[radial-gradient(circle,rgba(249,115,22,0.18),transparent_68%)]" style={{ animation: 'pulse-glow 7s ease-in-out infinite 1s' }} />

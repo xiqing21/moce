@@ -73,15 +73,17 @@ export function Header() {
         </button>
       </nav>
 
-      <div className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-1.5 py-1 shadow-sm">
+      <div className="theme-toggle flex items-center gap-1 rounded-full border border-slate-200 bg-white px-1.5 py-1 shadow-sm">
         <button
           type="button"
           className={`flex h-6 w-6 items-center justify-center rounded-full ${
-            !dark ? 'bg-orange-50 text-moce-orange' : 'text-slate-400 hover:text-slate-600'
+            !dark ? 'bg-orange-50 text-moce-orange' : 'text-slate-400 hover:text-slate-200'
           }`}
           onClick={() => {
-            if (dark) toggleDark()
-            toast('已切换到浅色模式', 'info')
+            if (dark) {
+              toggleDark()
+              toast('已切换到浅色模式', 'info')
+            }
           }}
           aria-label="浅色"
         >
@@ -90,11 +92,13 @@ export function Header() {
         <button
           type="button"
           className={`flex h-6 w-6 items-center justify-center rounded-full ${
-            dark ? 'bg-slate-800 text-amber-300' : 'text-slate-400 hover:text-slate-600'
+            dark ? 'bg-slate-700 text-amber-300' : 'text-slate-400 hover:text-slate-600'
           }`}
           onClick={() => {
-            if (!dark) toggleDark()
-            toast('已切换到深色模式（演示）', 'info')
+            if (!dark) {
+              toggleDark()
+              toast('已切换到深色模式', 'info')
+            }
           }}
           aria-label="深色"
         >

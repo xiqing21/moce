@@ -404,29 +404,27 @@ a.btn-orange-outline {
   padding-bottom: 24px;
 }
 
-/* —— Hero with side stickers (图1 / 图2) ——
- * 三栏网格：侧栏始终在 md+ 显示，不再依赖 xl:hidden
- */
+/* —— Hero with side stickers (图1 / 图2) —— */
 .hero-with-stickers {
   display: grid;
   grid-template-columns: 1fr;
   gap: 1rem;
-  align-items: start;
+  align-items: stretch;
   position: relative;
-  min-height: 560px;
+  min-height: 640px;
 }
 
 @media (min-width: 1024px) {
   .hero-with-stickers {
-    grid-template-columns: 220px minmax(0, 1fr) 230px;
-    gap: 0.75rem 1rem;
+    grid-template-columns: 210px minmax(0, 1fr) 220px;
+    gap: 0.75rem 0.85rem;
   }
 }
 
 @media (min-width: 1280px) {
   .hero-with-stickers {
-    grid-template-columns: 240px minmax(0, 1fr) 250px;
-    gap: 1rem 1.25rem;
+    grid-template-columns: 230px minmax(0, 1fr) 240px;
+    gap: 1rem 1rem;
   }
 }
 
@@ -436,19 +434,37 @@ a.btn-orange-outline {
 
 @media (min-width: 1024px) {
   .hero-with-stickers .sticker-col {
-    display: block;
-    position: sticky;
-    top: 72px;
-    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* 垂直居中，不要顶在上边 */
+    align-self: stretch;
+    z-index: 5;
+    /* 贴画氛围：低透明度，不抢中间主内容 */
+    opacity: 0.42;
+    pointer-events: auto;
+    max-height: none;
+  }
+  .hero-with-stickers .sticker-col:hover {
+    opacity: 0.62;
+  }
+  .hero-with-stickers .sticker-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    justify-content: center;
+  }
+  .hero-with-stickers .sticker-stack .card-soft {
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(6px);
   }
 }
 
 .hero-with-stickers .hero-center {
   min-width: 0;
   z-index: 10;
+  position: relative;
 }
 
-/* Mobile: stickers as horizontal strip under hero title optional */
 @media (max-width: 1023px) {
   .sticker-mobile-strip {
     display: flex;
@@ -456,9 +472,10 @@ a.btn-orange-outline {
     overflow-x: auto;
     padding: 0.25rem 0 0.75rem;
     -webkit-overflow-scrolling: touch;
+    opacity: 0.55;
   }
   .sticker-mobile-strip > * {
-    flex: 0 0 200px;
+    flex: 0 0 180px;
   }
 }
 
@@ -468,12 +485,143 @@ a.btn-orange-outline {
   }
 }
 
-/* dark mode light touch */
-.dark-mode {
+/* Background layers */
+.bg-base {
+  background: #fafafa;
+}
+.bg-warm {
+  background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(255, 237, 213, 0.75), transparent);
+}
+
+/* ========== Dark mode (html.dark) ========== */
+html.dark {
   color-scheme: dark;
 }
-.dark-mode body,
-.dark-mode #root {
+
+html.dark body {
   background: #0b1220;
+  color: #e2e8f0;
+}
+
+html.dark .bg-base {
+  background: #0b1220;
+}
+html.dark .bg-warm {
+  background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(249, 115, 22, 0.12), transparent);
+}
+
+html.dark .card,
+html.dark .card-soft {
+  background: #111827;
+  border-color: rgba(51, 65, 85, 0.9);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+html.dark .btn-outline {
+  background: #111827;
+  color: #cbd5e1;
+  border-color: #334155;
+}
+html.dark .btn-outline:hover {
+  background: #1e293b;
+  border-color: #475569;
+}
+html.dark .btn-orange-outline {
+  background: #111827;
+  color: #fb923c;
+  border-color: #9a3412;
+}
+
+html.dark header,
+html.dark .theme-toggle {
+  border-color: #334155;
+}
+html.dark .theme-toggle {
+  background: #1e293b;
+}
+
+html.dark .text-moce-ink,
+html.dark .text-slate-900,
+html.dark .text-slate-800,
+html.dark .text-slate-700 {
+  color: #e2e8f0 !important;
+}
+html.dark .text-slate-600 {
+  color: #94a3b8 !important;
+}
+html.dark .text-slate-500,
+html.dark .text-slate-400 {
+  color: #64748b !important;
+}
+
+html.dark .bg-white,
+html.dark .bg-white\/90,
+html.dark .bg-white\/95 {
+  background-color: #111827 !important;
+}
+html.dark .bg-slate-50,
+html.dark .bg-slate-50\/80,
+html.dark .bg-slate-50\/40 {
+  background-color: #1e293b !important;
+}
+html.dark .bg-orange-50,
+html.dark .bg-orange-50\/40,
+html.dark .bg-orange-50\/50 {
+  background-color: rgba(154, 52, 18, 0.25) !important;
+}
+html.dark .bg-emerald-50 {
+  background-color: rgba(6, 78, 59, 0.35) !important;
+}
+html.dark .bg-violet-50,
+html.dark .bg-violet-50\/50 {
+  background-color: rgba(76, 29, 149, 0.3) !important;
+}
+html.dark .bg-amber-50,
+html.dark .bg-amber-50\/40,
+html.dark .bg-amber-50\/50 {
+  background-color: rgba(120, 53, 15, 0.35) !important;
+}
+html.dark .bg-red-50 {
+  background-color: rgba(127, 29, 29, 0.35) !important;
+}
+html.dark .bg-blue-50 {
+  background-color: rgba(30, 58, 138, 0.35) !important;
+}
+html.dark .border-slate-100,
+html.dark .border-slate-200,
+html.dark .border-slate-200\/80 {
+  border-color: #334155 !important;
+}
+html.dark .data-table th {
+  background: #0f172a;
+  color: #94a3b8;
+  border-color: #334155;
+}
+html.dark .data-table td {
+  color: #e2e8f0;
+  border-color: #1e293b;
+}
+html.dark input,
+html.dark textarea,
+html.dark select {
+  background-color: #0f172a;
+  color: #e2e8f0;
+  border-color: #334155;
+}
+html.dark .code-block {
+  background: #020617;
+}
+
+html.dark .hero-with-stickers .sticker-col {
+  opacity: 0.38;
+}
+html.dark .hero-with-stickers .sticker-col:hover {
+  opacity: 0.55;
+}
+html.dark .hero-with-stickers .sticker-stack .card-soft {
+  background: rgba(17, 24, 39, 0.75);
+}
+
+html.dark .app-shell {
   color: #e2e8f0;
 }

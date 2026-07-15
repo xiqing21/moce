@@ -2,6 +2,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -67,8 +68,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [query, setQuery] = useState(
     '分析过去 30 天 Arbitrum 与 Optimism 的 TVL 趋势及资金净流入对比',
   )
-  const [dark, setDark] = useState(false)
+  const [dark, setDark] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return localStorage.getItem('moce-theme') === 'dark'
+  })
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly')
+
+  useEffect(() => {
+    const root = document.documentElement
+    if (dark) {
+      root.classList.add('dark')
+      root.dataset.theme = 'dark'
+      localStorage.setItem('moce-theme', 'dark')
+    } else {
+      root.classList.remove('dark')
+      root.dataset.theme = 'light'
+      localStorage.setItem('moce-theme', 'light')
+    }
+  }, [dark])
   const [toasts, setToasts] = useState<ToastItem[]>([])
   const [modal, setModal] = useState<ModalState>(null)
   const [savedReports, setSavedReports] = useState<string[]>(['Weekly DeFi Overview'])
