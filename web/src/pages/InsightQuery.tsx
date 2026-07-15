@@ -283,6 +283,7 @@ EXCHANGE GATHER`}
               每日结果（最近 7 天）
               <CheckCircle2 size={14} className="text-emerald-500" />
             </div>
+            <div className="data-table-wrap">
             <table className="data-table">
               <thead>
                 <tr>
@@ -309,6 +310,7 @@ EXCHANGE GATHER`}
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
 
           <div className="card p-4">

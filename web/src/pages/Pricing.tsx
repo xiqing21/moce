@@ -188,6 +188,7 @@ export function Pricing() {
 
       {/* Comparison mini table */}
       <div className="card mt-4 overflow-hidden">
+        <div className="data-table-wrap">
         <table className="data-table text-center">
           <thead>
             <tr>
@@ -222,6 +223,7 @@ export function Pricing() {
             ))}
           </tbody>
         </table>
+        </div>
         <div className="border-t border-slate-100 px-4 py-2 text-center">
           <Link to="/compare" className="text-[12px] font-medium text-orange-500 hover:underline">
             查看完整功能对比 →

@@ -20,7 +20,7 @@ export function ToastHost() {
   if (!toasts.length) return null
 
   return (
-    <div className="fixed right-4 top-16 z-[200] flex w-[320px] max-w-[92vw] flex-col gap-2">
+    <div className="fixed left-3 right-3 top-16 z-[200] flex flex-col gap-2 sm:left-auto sm:right-4 sm:w-[320px] sm:max-w-[92vw]">
       {toasts.map((t) => {
         const Icon = iconMap[t.type]
         return (

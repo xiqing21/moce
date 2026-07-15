@@ -62,10 +62,10 @@ export function InsightLanding() {
         <InsightLeftStickers />
 
         <div className="hero-center pt-1 text-center">
-          <h1 className="text-[28px] font-extrabold tracking-tight text-slate-900 sm:text-[36px]">
+          <h1 className="px-1 text-[22px] font-extrabold tracking-tight text-slate-900 sm:text-[28px] md:text-[36px]">
             从自然语言到 <span className="text-moce-orange">Web3 洞察</span>
           </h1>
-          <p className="mt-2 text-[13px] text-slate-500">
+          <p className="mt-2 px-1 text-[12px] text-slate-500 sm:text-[13px]">
             面向链上分析、协议运营与研究团队的 AI 数据分析入口。
           </p>
 
@@ -84,10 +84,10 @@ export function InsightLanding() {
             </div>
           </div>
 
-          <div className="card mt-5 p-4 text-left">
-            <div className="flex items-center gap-2 rounded-xl border border-orange-200 bg-orange-50/40 px-3 py-2.5">
+          <div className="card mt-5 p-3 text-left sm:p-4">
+            <div className="flex items-center gap-2 rounded-xl border border-orange-200 bg-orange-50/40 px-2.5 py-2 sm:px-3 sm:py-2.5">
               <input
-                className="flex-1 bg-transparent text-[13px] text-slate-700 outline-none placeholder:text-slate-400"
+                className="min-w-0 flex-1 bg-transparent text-[13px] text-slate-700 outline-none placeholder:text-slate-400"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && submit()}
@@ -95,7 +95,7 @@ export function InsightLanding() {
               />
               <button
                 type="button"
-                className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 text-white shadow-sm hover:bg-orange-600"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-orange-500 text-white shadow-sm hover:bg-orange-600 sm:h-8 sm:w-8"
                 onClick={() => submit()}
               >
                 <Send size={14} />

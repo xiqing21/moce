@@ -26,6 +26,12 @@ html,
 body,
 #root {
   min-height: 100%;
+  max-width: 100vw;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -35,6 +41,19 @@ body {
   background: #fafafa;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Touch-friendly taps */
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Wide tables / matrices */
+.table-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
 }
 
 /* Soft card shadow matching prototypes */
@@ -148,8 +167,15 @@ body {
 }
 
 /* Table styles */
+.data-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .data-table {
   width: 100%;
+  min-width: 480px;
   border-collapse: collapse;
   font-size: 12px;
 }
@@ -411,7 +437,13 @@ a.btn-orange-outline {
   gap: 1rem;
   align-items: stretch;
   position: relative;
-  min-height: 640px;
+  min-height: 0;
+}
+
+@media (min-width: 1024px) {
+  .hero-with-stickers {
+    min-height: 640px;
+  }
 }
 
 @media (min-width: 1024px) {
@@ -624,4 +656,26 @@ html.dark .hero-with-stickers .sticker-stack .card-soft {
 
 html.dark .app-shell {
   color: #e2e8f0;
+}
+
+/* Mobile safe area & overflow guards */
+@media (max-width: 639px) {
+  .card,
+  .card-soft {
+    border-radius: 14px;
+  }
+
+  h1 {
+    word-break: break-word;
+  }
+}
+
+/* Prevent chart containers from forcing horizontal page scroll */
+.recharts-responsive-container {
+  min-width: 0 !important;
+}
+
+.app-shell img,
+.app-shell svg {
+  max-width: 100%;
 }

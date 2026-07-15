@@ -125,71 +125,74 @@ export function ComparePlans() {
         </div>
       </div>
 
-      {/* Plan headers */}
-      <div className="mb-2 grid grid-cols-[180px_1fr_1fr_1fr_1fr] gap-2">
-        <div />
-        {[
-          { name: 'Free', desc: '基础体验与入门使用', price: '$0', period: '/ month', icon: Gift, dark: false, highlight: false },
-          { name: 'Pro', desc: '个人与专业分析', price: '$29', period: '/ month', icon: BarChart3, dark: false, highlight: true },
-          { name: 'Team', desc: '团队协作与运营', price: '$199', period: '/ month', icon: Users, dark: false, highlight: false },
-          { name: 'Enterprise', desc: '企业级安全与定制', price: 'Custom', period: '', icon: Shield, dark: true, highlight: false },
-        ].map((p) => (
-          <div
-            key={p.name}
-            className={`rounded-xl p-3 text-center ${
-              p.dark
-                ? 'bg-slate-900 text-white'
-                : p.highlight
-                  ? 'border-2 border-orange-400 bg-white shadow-md'
-                  : 'border border-slate-200 bg-white'
-            }`}
-          >
-            {p.highlight && (
-              <span className="mb-1 inline-block rounded-full bg-orange-500 px-2 py-0.5 text-[9px] font-semibold text-white">推荐</span>
-            )}
-            <div className="flex items-center justify-center gap-1 text-[13px] font-bold">
-              <p.icon size={14} className={p.dark ? 'text-white' : 'text-orange-500'} />
-              {p.name}
-            </div>
-            <div className={`text-[10px] ${p.dark ? 'text-slate-300' : 'text-slate-400'}`}>{p.desc}</div>
-            <div className={`mt-1 text-[18px] font-extrabold ${p.dark ? 'text-white' : p.price === 'Custom' ? 'text-slate-800' : 'text-slate-900'}`}>
-              {p.price}
-              {p.period && <span className="text-[11px] font-normal text-slate-400">{p.period}</span>}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Feature matrix */}
-      <div className="card overflow-hidden">
-        {sections.map((sec) => (
-          <div key={sec.name}>
-            <div className="grid grid-cols-[180px_1fr_1fr_1fr_1fr] border-b border-slate-100 bg-slate-50/80">
-              <div className="flex items-center gap-1.5 px-3 py-2 text-[12px] font-bold text-slate-700">
-                <span>{sec.icon}</span> {sec.name}
-              </div>
-              <div /><div /><div /><div />
-            </div>
-            {sec.rows.map((row) => (
+      {/* Plan headers + matrix: horizontal scroll on narrow screens */}
+      <div className="table-scroll -mx-1 overflow-x-auto px-1 pb-2">
+        <div className="min-w-[720px]">
+          <div className="mb-2 grid grid-cols-[140px_1fr_1fr_1fr_1fr] gap-2 sm:grid-cols-[180px_1fr_1fr_1fr_1fr]">
+            <div />
+            {[
+              { name: 'Free', desc: '基础体验与入门使用', price: '$0', period: '/ month', icon: Gift, dark: false, highlight: false },
+              { name: 'Pro', desc: '个人与专业分析', price: '$29', period: '/ month', icon: BarChart3, dark: false, highlight: true },
+              { name: 'Team', desc: '团队协作与运营', price: '$199', period: '/ month', icon: Users, dark: false, highlight: false },
+              { name: 'Enterprise', desc: '企业级安全与定制', price: 'Custom', period: '', icon: Shield, dark: true, highlight: false },
+            ].map((p) => (
               <div
-                key={row.feature}
-                className="grid grid-cols-[180px_1fr_1fr_1fr_1fr] border-b border-slate-50 text-[12px] hover:bg-orange-50/20"
+                key={p.name}
+                className={`rounded-xl p-3 text-center ${
+                  p.dark
+                    ? 'bg-slate-900 text-white'
+                    : p.highlight
+                      ? 'border-2 border-orange-400 bg-white shadow-md'
+                      : 'border border-slate-200 bg-white'
+                }`}
               >
-                <div className="px-3 py-2 text-slate-600">{row.feature}</div>
-                {(['free', 'pro', 'team', 'enterprise'] as const).map((k) => (
+                {p.highlight && (
+                  <span className="mb-1 inline-block rounded-full bg-orange-500 px-2 py-0.5 text-[9px] font-semibold text-white">推荐</span>
+                )}
+                <div className="flex items-center justify-center gap-1 text-[13px] font-bold">
+                  <p.icon size={14} className={p.dark ? 'text-white' : 'text-orange-500'} />
+                  {p.name}
+                </div>
+                <div className={`text-[10px] ${p.dark ? 'text-slate-300' : 'text-slate-400'}`}>{p.desc}</div>
+                <div className={`mt-1 text-[18px] font-extrabold ${p.dark ? 'text-white' : p.price === 'Custom' ? 'text-slate-800' : 'text-slate-900'}`}>
+                  {p.price}
+                  {p.period && <span className="text-[11px] font-normal text-slate-400">{p.period}</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="card overflow-hidden">
+            {sections.map((sec) => (
+              <div key={sec.name}>
+                <div className="grid grid-cols-[140px_1fr_1fr_1fr_1fr] border-b border-slate-100 bg-slate-50/80 sm:grid-cols-[180px_1fr_1fr_1fr_1fr]">
+                  <div className="flex items-center gap-1.5 px-3 py-2 text-[12px] font-bold text-slate-700">
+                    <span>{sec.icon}</span> {sec.name}
+                  </div>
+                  <div /><div /><div /><div />
+                </div>
+                {sec.rows.map((row) => (
                   <div
-                    key={k}
-                    className={`flex items-center justify-center px-2 py-2 ${
-                      k === 'pro' ? 'bg-orange-50/30' : ''
-                    }`}
+                    key={row.feature}
+                    className="grid grid-cols-[140px_1fr_1fr_1fr_1fr] border-b border-slate-50 text-[12px] hover:bg-orange-50/20 sm:grid-cols-[180px_1fr_1fr_1fr_1fr]"
                   >
-                    <CellIcon v={row[k]} />
+                    <div className="px-3 py-2 text-slate-600">{row.feature}</div>
+                    {(['free', 'pro', 'team', 'enterprise'] as const).map((k) => (
+                      <div
+                        key={k}
+                        className={`flex items-center justify-center px-2 py-2 ${
+                          k === 'pro' ? 'bg-orange-50/30' : ''
+                        }`}
+                      >
+                        <CellIcon v={row[k]} />
+                      </div>
+                    ))}
                   </div>
                 ))}
               </div>
             ))}
           </div>
-        ))}
+        </div>
       </div>
     </div>
   )

@@ -27,10 +27,10 @@ export function Home() {
         <HomeLeftStickers />
 
         <div className="hero-center text-center">
-          <h1 className="text-[30px] font-extrabold tracking-tight text-slate-900 sm:text-[38px]">
+          <h1 className="px-1 text-[22px] font-extrabold tracking-tight text-slate-900 sm:text-[30px] md:text-[38px]">
             One Brand, <span className="text-moce-orange">Three Intelligence Layers</span>
           </h1>
-          <p className="mt-2 text-[13.5px] text-slate-500">
+          <p className="mt-2 px-1 text-[12.5px] text-slate-500 sm:text-[13.5px]">
             一个品牌，连接 Web3 数据分析、数据生产与 Alpha 发现。
           </p>
 

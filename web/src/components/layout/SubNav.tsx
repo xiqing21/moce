@@ -25,15 +25,17 @@ export function SubNav() {
   const { pathname } = useLocation()
 
   return (
-    <div className="fixed bottom-3 left-1/2 z-[100] max-w-[98vw] -translate-x-1/2">
-      <div className="flex max-w-[1100px] items-center gap-1 overflow-x-auto rounded-full border border-slate-200/80 bg-white/95 px-2 py-1.5 shadow-lg backdrop-blur">
+    <div
+      className="fixed bottom-0 left-0 right-0 z-[100] px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1 sm:bottom-3 sm:left-1/2 sm:right-auto sm:max-w-[98vw] sm:-translate-x-1/2 sm:px-0 sm:pb-0 sm:pt-0"
+    >
+      <div className="mx-auto flex max-w-[1100px] items-center gap-1 overflow-x-auto overscroll-x-contain rounded-2xl border border-slate-200/80 bg-white/95 px-1.5 py-1.5 shadow-lg backdrop-blur sm:rounded-full sm:px-2 [-webkit-overflow-scrolling:touch]">
         {PAGES.map((p) => {
           const on = pathname === p.path
           return (
             <Link
               key={p.path}
               to={p.path}
-              className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-medium transition ${
+              className={`shrink-0 rounded-full px-2 py-1.5 text-[10px] font-medium transition active:scale-95 sm:py-1 ${
                 on
                   ? 'bg-orange-500 text-white shadow-sm'
                   : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
