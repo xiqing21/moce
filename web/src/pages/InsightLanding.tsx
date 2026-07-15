@@ -15,7 +15,7 @@ import {
   Zap,
 } from 'lucide-react'
 import { ProductTabs } from '../components/layout/ProductTabs'
-import { DecorCarousel } from '../components/effects/DecorCarousel'
+import { InsightSideDecor } from '../components/effects/InsightSideDecor'
 import { OrbitDecor } from '../components/effects/FloatCard'
 import { useApp } from '../context/AppContext'
 
@@ -61,8 +61,7 @@ export function InsightLanding() {
 
       <div className="relative min-h-[620px]">
         <OrbitDecor />
-        <DecorCarousel side="left" intervalMs={3400} />
-        <DecorCarousel side="right" intervalMs={4000} />
+        <InsightSideDecor />
 
         <div className="relative z-10 mx-auto max-w-[720px] pt-4 text-center">
           <h1 className="text-[32px] font-extrabold tracking-tight text-slate-900 sm:text-[38px]">

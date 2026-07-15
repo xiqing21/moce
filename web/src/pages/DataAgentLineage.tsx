@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   CheckCircle2,
@@ -10,6 +11,7 @@ import {
 import { ProductTabs } from '../components/layout/ProductTabs'
 import { AgentStepNav } from '../components/layout/AgentStepNav'
 import { useApp } from '../context/AppContext'
+import { getNodeDetail } from '../data/lineageNodes'
 
 const LAYERS = [
   {
@@ -59,6 +61,7 @@ const LAYERS = [
 export function DataAgentLineage() {
   const navigate = useNavigate()
   const { toast, selectedNode, setSelectedNode, setAgentStep } = useApp()
+  const detail = useMemo(() => getNodeDetail(selectedNode), [selectedNode])
 
   return (
     <div className="mx-auto max-w-[1280px]">
@@ -155,7 +158,7 @@ export function DataAgentLineage() {
                         toast(`已选中血缘节点：${n.id}`, 'info')
                       }}
                       className={`rounded-lg border bg-white px-2.5 py-1.5 text-left shadow-sm transition hover:border-violet-300 ${
-                        selectedNode === n.id || (n as { active?: boolean }).active
+                        selectedNode === n.id
                           ? 'border-violet-400 ring-2 ring-violet-200'
                           : 'border-slate-200'
                       }`}
@@ -169,21 +172,13 @@ export function DataAgentLineage() {
             ))}
           </div>
 
-          {/* Job Spec */}
+          {/* Job Spec — follows selected node */}
           <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50/80 p-2.5">
-            <div className="mb-2 text-[11px] font-semibold text-slate-600">Job Spec（基于当前选中节点）</div>
+            <div className="mb-2 text-[11px] font-semibold text-slate-600">
+              Job Spec（当前：<span className="text-violet-600">{selectedNode}</span>）
+            </div>
             <div className="flex flex-wrap gap-1.5">
-              {[
-                { k: 'Job Name', v: 'dws_l2_tvl_compare_30d' },
-                { k: 'DAG ID', v: 'dag_20250518_0017' },
-                { k: 'Engine', v: 'Flink 1.18' },
-                { k: 'Storage', v: 'Fluss 0.6.0' },
-                { k: 'Serving', v: 'StarRocks 3.3' },
-                { k: 'SLA', v: '15m 延迟 / 99.9%' },
-                { k: 'Checkpoint', v: '5m' },
-                { k: 'Watermark', v: 'event_time + 5m' },
-                { k: 'Join Strategy', v: 'Broadcast + Shuffle' },
-              ].map((s) => (
+              {detail.job.map((s) => (
                 <div key={s.k} className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[10.5px]">
                   <span className="text-slate-400">{s.k}</span>
                   <div className="font-medium text-slate-700">{s.v}</div>
@@ -240,11 +235,15 @@ export function DataAgentLineage() {
           </div>
         </div>
 
-        {/* Right detail */}
-        <aside className="card-soft p-3">
+        {/* Right detail — fully bound to selectedNode */}
+        <aside className="card-soft p-3" key={selectedNode}>
           <div className="mb-2 flex items-center justify-between text-[12px] font-semibold text-slate-700">
             血缘详情
-            <button className="flex items-center gap-1 text-[11px] font-normal text-slate-400">
+            <button
+              type="button"
+              className="flex items-center gap-1 text-[11px] font-normal text-slate-400 hover:text-violet-600"
+              onClick={() => toast(`已刷新节点元数据：${selectedNode}`, 'success')}
+            >
               <RefreshCw size={11} /> 刷新
             </button>
           </div>
@@ -255,25 +254,29 @@ export function DataAgentLineage() {
             </div>
           </div>
           <div className="space-y-1.5 text-[11.5px]">
-            {[
-              ['节点类型', 'DWS 层（汇总表）'],
-              ['上游', 'dwd_protocol_tvl_daily'],
-              ['下游', 'ads_l2_competition_summary'],
-              ['刷新频率', '15 分钟'],
-              ['主键', 'date, chain, protocol'],
-              ['负责人', 'data-analyst'],
-              ['状态', '运行中'],
-              ['健康度', '100%'],
-            ].map(([k, v]) => (
+            {(
+              [
+                ['节点类型', detail.type],
+                ['上游', detail.upstream],
+                ['下游', detail.downstream],
+                ['刷新频率', detail.refresh],
+                ['主键', detail.pk],
+                ['负责人', detail.owner],
+                ['状态', detail.status],
+                ['健康度', detail.health],
+              ] as const
+            ).map(([k, v]) => (
               <div key={k} className="flex justify-between gap-2 border-b border-slate-50 py-1">
-                <span className="text-slate-400">{k}</span>
-                <span className="text-right font-medium text-slate-700">{v}</span>
+                <span className="shrink-0 text-slate-400">{k}</span>
+                <span className="text-right font-medium text-slate-700 break-all">{v}</span>
               </div>
             ))}
           </div>
 
           <div className="mt-3">
-            <div className="mb-1.5 text-[11px] font-semibold text-slate-600">字段信息 (7)</div>
+            <div className="mb-1.5 text-[11px] font-semibold text-slate-600">
+              字段信息 ({detail.fields.length})
+            </div>
             <table className="w-full text-[10px]">
               <thead>
                 <tr className="text-slate-400">
@@ -283,19 +286,11 @@ export function DataAgentLineage() {
                 </tr>
               </thead>
               <tbody className="text-slate-600">
-                {[
-                  ['date', 'DATE', '统计日期'],
-                  ['chain', 'VARCHAR(16)', '链名'],
-                  ['protocol', 'VARCHAR(64)', '协议名称'],
-                  ['tvl_usd', 'DECIMAL(38,6)', 'TVL (USD)'],
-                  ['tvl_change_7d_usd', 'DECIMAL', '7 日 TVL 变化'],
-                  ['net_inflow_7d_usd', 'DECIMAL', '7 日净流入'],
-                  ['tvl_rank', 'INT', 'TVL 排名'],
-                ].map((r) => (
-                  <tr key={r[0]} className="border-t border-slate-50">
-                    <td className="py-1 font-mono text-[9.5px]">{r[0]}</td>
-                    <td className="py-1">{r[1]}</td>
-                    <td className="py-1">{r[2]}</td>
+                {detail.fields.map((r) => (
+                  <tr key={r.name} className="border-t border-slate-50">
+                    <td className="py-1 font-mono text-[9.5px]">{r.name}</td>
+                    <td className="py-1">{r.type}</td>
+                    <td className="py-1">{r.desc}</td>
                   </tr>
                 ))}
               </tbody>

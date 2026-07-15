@@ -15,6 +15,7 @@ import {
   SparkLine,
 } from '../components/charts/MiniCharts'
 import { drawdownCurve, equityCurve, factorBuckets } from '../data/mock'
+import { resolveStrategyScenario } from '../data/alphaScenarios'
 
 export function AlphaStrategy() {
   const { toast, toggleWatch } = useApp()
@@ -29,8 +30,13 @@ export function AlphaStrategy() {
   const [benchmark, setBenchmark] = useState('BTC, ETH, 等权组合')
   const [note, setNote] = useState('')
   const [ran, setRan] = useState(false)
+  const [runKey, setRunKey] = useState(0)
 
-  const scale = horizon.includes('14') ? 1.2 : horizon.includes('30') ? 1.45 : 1
+  const scen = useMemo(
+    () => resolveStrategyScenario(universe, horizon, method, factors),
+    [universe, horizon, method, factors, runKey],
+  )
+  const scale = scen.equityScale
   const equity = useMemo(
     () =>
       equityCurve.map((d) => ({
@@ -42,8 +48,9 @@ export function AlphaStrategy() {
 
   const runBacktest = () => {
     setRan(true)
+    setRunKey((k) => k + 1)
     toast(
-      `回测完成：${universe} · 窗口 ${horizon} · ${method} · 样本 2,842 · Sharpe ${(1.72 * scale).toFixed(2)}`,
+      `回测完成：${universe} · ${horizon} · 样本 ${scen.samples} · Sharpe ${scen.sharpe}`,
       'success',
     )
   }
@@ -330,17 +337,18 @@ export function AlphaStrategy() {
                 6 AI 研究结论摘要
                 <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-normal text-emerald-600">置信度：高</span>
               </div>
-              <p className="mb-1.5 text-[11px] text-slate-500">在样本区间内，该策略在 7 天预测窗口下表现显著优于基准。</p>
+              <p className="mb-1.5 text-[11px] text-slate-500">
+                窗口 {horizon} · 方式 {method} · 基准 {benchmark}
+              </p>
               <ul className="space-y-1 text-[11px] text-slate-600">
-                <li>• 策略年化收益 68.27%，超额收益稳定，最大回撤可控。</li>
-                <li>• 因子分层呈单调递增关系，高分组优势明显。</li>
-                <li>• 策略在中小市值资产中信号质量更高，适合捕捉早期资金面改善。</li>
-                <li>• 建议结合链上活跃度与资金费率过滤，进一步提升胜率。</li>
+                {scen.conclusion.map((line) => (
+                  <li key={line}>• {line}</li>
+                ))}
               </ul>
               <div className="mt-2 flex flex-wrap gap-2 text-[10px] text-slate-400">
-                <span>显著性（检验）：p &lt; 0.01</span>
-                <span>信息比率 (IR)：1.72</span>
-                <span>样本稳健性：良好</span>
+                <span>显著性：p &lt; 0.01</span>
+                <span>IR：{scen.sharpe}</span>
+                <span>样本：{scen.samples}</span>
               </div>
             </div>
           </div>
@@ -350,20 +358,23 @@ export function AlphaStrategy() {
         <aside className="space-y-3">
           <div className="card-soft p-3">
             <div className="mb-2 text-[12px] font-semibold text-slate-700">策略表现概览</div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2" key={`metrics-${runKey}-${scen.sharpe}`}>
               {[
-                { l: '总收益', v: '+112.35%', c: 'text-emerald-600' },
-                { l: '年化收益', v: '+68.27%', c: 'text-emerald-600' },
-                { l: '最大回撤', v: '-13.27%', c: 'text-red-500' },
-                { l: 'Sharpe Ratio', v: '1.72', c: 'text-slate-800' },
-                { l: '胜率', v: '62.41%', c: 'text-slate-800' },
-                { l: '盈亏比', v: '2.48', c: 'text-slate-800' },
+                { l: '总收益', v: scen.totalReturn, c: 'text-emerald-600' },
+                { l: '年化收益', v: scen.annReturn, c: 'text-emerald-600' },
+                { l: '最大回撤', v: scen.maxDd, c: 'text-red-500' },
+                { l: 'Sharpe Ratio', v: scen.sharpe, c: 'text-slate-800' },
+                { l: '胜率', v: scen.winRate, c: 'text-slate-800' },
+                { l: '盈亏比', v: scen.plRatio, c: 'text-slate-800' },
               ].map((k) => (
                 <div key={k.l} className="rounded-lg bg-slate-50 p-2">
                   <div className="text-[10px] text-slate-400">{k.l}</div>
                   <div className={`text-[14px] font-bold ${k.c}`}>{k.v}</div>
                 </div>
               ))}
+            </div>
+            <div className="mt-2 text-[10px] text-slate-400">
+              样本 {scen.samples} · {universe} · {horizon}
             </div>
           </div>
 

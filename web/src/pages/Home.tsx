@@ -25,8 +25,11 @@ export function Home() {
 
       <div className="relative min-h-[640px]">
         <OrbitDecor />
-        <DecorCarousel side="left" intervalMs={3600} />
-        <DecorCarousel side="right" intervalMs={4200} />
+        {/* Home uses softer carousel + product matrix focus; keep subtle side decor */}
+        <div className="opacity-80">
+          <DecorCarousel side="left" intervalMs={3600} />
+          <DecorCarousel side="right" intervalMs={4200} />
+        </div>
 
         <div className="relative z-10 mx-auto max-w-[860px] pt-2 text-center">
           <h1 className="text-[34px] font-extrabold tracking-tight text-slate-900 sm:text-[40px]">

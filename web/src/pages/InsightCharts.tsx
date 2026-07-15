@@ -66,43 +66,130 @@ export function InsightCharts() {
   const [grain, setGrain] = useState(GRAIN_OPTIONS[0])
   const [sort, setSort] = useState(SORT_OPTIONS[0])
   const [anomaly, setAnomaly] = useState(true)
+  const [cfgVersion, setCfgVersion] = useState(0)
 
+  /** Build series that visibly changes with X 轴 + 时间粒度 */
   const trendData = useMemo(() => {
-    let data = tvlCompare30d.map((d) => ({ date: d.date, arb: d.arb, op: d.op }))
+    const base = tvlCompare30d
+    let data: { date: string; arb: number; op: number }[] = []
+
+    // Prefer grain, then xAxis — make labels obviously different
+    const mode =
+      grain.includes('小时') || xAxis.includes('日期') && grain.includes('小时')
+        ? 'hour'
+        : grain.includes('周') || xAxis.includes('周')
+          ? 'week'
+          : xAxis.includes('月')
+            ? 'month'
+            : 'day'
+
+    if (mode === 'hour') {
+      data = Array.from({ length: 24 }, (_, h) => ({
+        date: `${String(h).padStart(2, '0')}:00`,
+        arb: 2.2 + Math.sin(h / 3) * 0.15 + h * 0.008,
+        op: 0.85 + Math.cos(h / 4) * 0.08 + h * 0.003,
+      }))
+    } else if (mode === 'week') {
+      // Aggregate ~7 days → week labels
+      for (let w = 0; w < 5; w++) {
+        const slice = base.slice(w * 6, w * 6 + 6)
+        if (!slice.length) continue
+        const arb = slice.reduce((s, d) => s + d.arb, 0) / slice.length
+        const op = slice.reduce((s, d) => s + d.op, 0) / slice.length
+        data.push({ date: `第${w + 1}周`, arb, op })
+      }
+    } else if (mode === 'month') {
+      data = [
+        { date: '2025-03', arb: 1.95, op: 0.72 },
+        { date: '2025-04', arb: 2.15, op: 0.8 },
+        { date: '2025-05', arb: 2.47, op: 0.91 },
+      ]
+    } else {
+      // day — full labels like 05-12
+      data = base.map((d) => ({ date: d.date, arb: d.arb, op: d.op }))
+    }
+
+    // Y-axis mock transform
+    if (yAxis.includes('净流入')) {
+      data = data.map((d, i) => ({
+        ...d,
+        arb: 5 + Math.sin(i / 2) * 4 + i * 0.3,
+        op: -2 + Math.cos(i / 2.5) * 2 - i * 0.15,
+      }))
+    } else if (yAxis.includes('活跃')) {
+      data = data.map((d, i) => ({
+        ...d,
+        arb: 80 + i * 2 + Math.sin(i) * 5,
+        op: 45 + i * 1.2 + Math.cos(i) * 4,
+      }))
+    } else if (yAxis.includes('Gas')) {
+      data = data.map((d, i) => ({
+        ...d,
+        arb: 0.12 + Math.sin(i / 3) * 0.03,
+        op: 0.08 + Math.cos(i / 3) * 0.02,
+      }))
+    }
+
     if (group.includes('仅 Arbitrum')) data = data.map((d) => ({ ...d, op: 0 }))
     if (group.includes('仅 Optimism')) data = data.map((d) => ({ ...d, arb: 0 }))
     if (sort.includes('降序') && sort.includes('日期')) data = [...data].reverse()
-    if (grain.includes('周')) data = data.filter((_, i) => i % 7 === 0)
+    if (sort.includes('数值')) data = [...data].sort((a, b) => b.arb - a.arb)
+
     return data
-  }, [group, sort, grain])
+  }, [group, sort, grain, xAxis, yAxis, cfgVersion])
+
+  const chartMeta = useMemo(() => {
+    const mode = grain.includes('小时')
+      ? '小时'
+      : grain.includes('周') || xAxis.includes('周')
+        ? '周'
+        : xAxis.includes('月')
+          ? '月'
+          : '天'
+    return {
+      mode,
+      points: trendData.length,
+      first: trendData[0]?.date ?? '—',
+      last: trendData[trendData.length - 1]?.date ?? '—',
+    }
+  }, [trendData, grain, xAxis])
 
   const revenueData = useMemo(
     () =>
-      Array.from({ length: 12 }, (_, i) => ({
-        name: `W${i + 1}`,
-        arb: 1.2 + Math.sin(i / 2) * 0.4 + i * 0.05,
+      Array.from({ length: grain.includes('周') ? 8 : 12 }, (_, i) => ({
+        name: grain.includes('周') ? `W${i + 1}` : grain.includes('小时') ? `${i * 2}h` : `D${i + 1}`,
+        arb: 1.2 + Math.sin(i / 2) * 0.4 + i * 0.05 + (categoryBump(group)),
         op: 0.6 + Math.cos(i / 3) * 0.2 + i * 0.02,
       })),
-    [],
+    [grain, group],
   )
 
   const userData = useMemo(
     () =>
-      Array.from({ length: 14 }, (_, i) => ({
-        date: `D${i + 1}`,
+      Array.from({ length: grain.includes('小时') ? 24 : 14 }, (_, i) => ({
+        date: grain.includes('小时') ? `${String(i).padStart(2, '0')}:00` : `D${i + 1}`,
         arb: 80 + i * 3 + Math.sin(i) * 8,
         op: 50 + i * 2 + Math.cos(i) * 6,
       })),
-    [],
+    [grain],
   )
 
   const gasData = useMemo(
     () => [
-      { name: 'Arbitrum', v: 0.11 },
-      { name: 'Optimism', v: 0.08 },
+      { name: 'Arbitrum', v: group.includes('仅 Optimism') ? 0 : 0.11 },
+      { name: 'Optimism', v: group.includes('仅 Arbitrum') ? 0 : 0.08 },
     ],
-    [],
+    [group],
   )
+
+  function categoryBump(g: string) {
+    return g.includes('Top5') ? 0.3 : 0
+  }
+
+  const bumpCfg = (msg: string) => {
+    setCfgVersion((v) => v + 1)
+    toast(msg, 'success')
+  }
 
   const selectType = (label: ChartLabel) => {
     setChartType(label)
@@ -207,12 +294,26 @@ startxref
           <div className="mb-2 flex items-center justify-between">
             <div>
               <div className="text-[14px] font-bold text-slate-900">{active}</div>
-              <div className="text-[11px] text-slate-400">
-                {CHART_TYPES.find((c) => c.label === active)?.desc} · {xAxis} / {yAxis}
-                {anomaly ? ' · 异常点已标注' : ''}
+              <div className="text-[11px] text-slate-500">
+                {CHART_TYPES.find((c) => c.label === active)?.desc}
+              </div>
+              <div className="mt-1 flex flex-wrap gap-1.5 text-[10px]">
+                <span className="rounded-full bg-orange-50 px-2 py-0.5 font-semibold text-orange-600">
+                  粒度：{chartMeta.mode} · {chartMeta.points} 个点
+                </span>
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-slate-600">
+                  X：{xAxis}（{chartMeta.first} → {chartMeta.last}）
+                </span>
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-slate-600">Y：{yAxis}</span>
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-slate-600">{group}</span>
+                {anomaly && (
+                  <span className="rounded-full bg-amber-50 px-2 py-0.5 text-amber-700">异常点 ON</span>
+                )}
               </div>
             </div>
-            <span className="rounded-full bg-orange-50 px-2 py-0.5 text-[10px] font-medium text-orange-600">实时预览</span>
+            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-600">
+              配置 v{cfgVersion + 1} 已生效
+            </span>
           </div>
 
           <div className="min-h-[320px] rounded-xl border border-slate-100 bg-slate-50/40 p-2">
@@ -344,8 +445,13 @@ startxref
                 className="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 outline-none focus:border-orange-300"
                 value={xAxis}
                 onChange={(e) => {
-                  setXAxis(e.target.value)
-                  toast(`X 轴：${e.target.value}`, 'info')
+                  const v = e.target.value
+                  setXAxis(v)
+                  // Sync grain for visible X labels
+                  if (v.includes('周')) setGrain('按周 (1w)')
+                  else if (v.includes('月')) setGrain('按天 (1d)')
+                  else setGrain('按天 (1d)')
+                  bumpCfg(`X 轴已改为 ${v}，刻度已重绘`)
                 }}
               >
                 {X_OPTIONS.map((o) => (
@@ -364,7 +470,8 @@ startxref
                   if (e.target.value.includes('Gas')) selectType('Gas 分析')
                   else if (e.target.value.includes('活跃')) selectType('用户增长')
                   else if (e.target.value.includes('净流入')) selectType('资金流向')
-                  toast(`Y 轴：${e.target.value}`, 'info')
+                  else if (active !== '趋势图' && active !== '柱状图' && active !== '多维对比') selectType('趋势图')
+                  bumpCfg(`Y 轴：${e.target.value}，序列已重算`)
                 }}
               >
                 {Y_OPTIONS.map((o) => (
@@ -380,7 +487,7 @@ startxref
                 value={group}
                 onChange={(e) => {
                   setGroup(e.target.value)
-                  toast(`分组：${e.target.value}`, 'info')
+                  bumpCfg(`分组：${e.target.value}`)
                 }}
               >
                 {GROUP_OPTIONS.map((o) => (
@@ -395,8 +502,12 @@ startxref
                 className="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 outline-none focus:border-orange-300"
                 value={grain}
                 onChange={(e) => {
-                  setGrain(e.target.value)
-                  toast(`粒度：${e.target.value}`, 'info')
+                  const v = e.target.value
+                  setGrain(v)
+                  if (v.includes('周')) setXAxis('周 (week)')
+                  else if (v.includes('小时')) setXAxis('日期 (day)')
+                  else setXAxis('日期 (day)')
+                  bumpCfg(`时间粒度：${v} → X 轴标签已切换（${v.includes('周') ? '第N周' : v.includes('小时') ? 'HH:00' : 'MM-DD'}）`)
                 }}
               >
                 {GRAIN_OPTIONS.map((o) => (
@@ -412,7 +523,7 @@ startxref
                 value={sort}
                 onChange={(e) => {
                   setSort(e.target.value)
-                  toast(`排序：${e.target.value}`, 'info')
+                  bumpCfg(`排序：${e.target.value}`)
                 }}
               >
                 {SORT_OPTIONS.map((o) => (

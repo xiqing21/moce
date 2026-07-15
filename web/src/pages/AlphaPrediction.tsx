@@ -15,13 +15,8 @@ import {
   SimpleBarChart,
   SparkArea,
 } from '../components/charts/MiniCharts'
-import {
-  liquidityTrend,
-  oddsSpark,
-  oddsTrend,
-  smartMoneyBars,
-  volumeBars,
-} from '../data/mock'
+import { liquidityTrend, oddsSpark, smartMoneyBars } from '../data/mock'
+import { resolveAlphaScenario } from '../data/alphaScenarios'
 
 export function AlphaPrediction() {
   const { toast, toggleWatch, setQuery } = useApp()
@@ -34,24 +29,19 @@ export function AlphaPrediction() {
   const [eventType, setEventType] = useState('宏观事件')
   const [risk, setRisk] = useState('中等风险')
   const [analyzed, setAnalyzed] = useState(false)
+  const [scenarioKey, setScenarioKey] = useState(0)
 
-  const scale = timeRange.includes('30') ? 1.35 : timeRange.includes('24') ? 0.55 : 1
-
-  const oddsData = useMemo(
-    () =>
-      oddsTrend.map((d) => ({
-        ...d,
-        poly: d.poly * (platform.includes('Predict') && !platform.includes('Polymarket') ? 0.9 : 1),
-        predict: d.predict * scale,
-      })),
-    [platform, scale],
+  const scenario = useMemo(
+    () => resolveAlphaScenario(category, platform, timeRange, eventType, risk),
+    [category, platform, timeRange, eventType, risk, scenarioKey],
   )
 
   const runAnalysis = () => {
     setQuery(prompt)
     setAnalyzed(true)
+    setScenarioKey((k) => k + 1)
     toast(
-      `分析完成：${category} · ${platform.split(',')[0]} · ${timeRange} · ${eventType} · ${risk}`,
+      `分析完成并已刷新全页数据：${category} · ${timeRange} · ${eventType} · ${risk}`,
       'success',
     )
   }
@@ -248,17 +238,22 @@ export function AlphaPrediction() {
 
         {/* Center */}
         <div className="space-y-3">
-          {/* KPI insight card */}
-          <div className="card p-3">
-            <div className="mb-2 text-[12px] font-semibold text-slate-700">市场结构洞察卡</div>
+          {/* KPI insight card — bound to scenario */}
+          <div className="card p-3" key={`kpi-${scenario.key}`}>
+            <div className="mb-2 flex items-center justify-between text-[12px] font-semibold text-slate-700">
+              市场结构洞察卡
+              <span className="text-[10px] font-normal text-orange-500">
+                {category} · {timeRange}
+              </span>
+            </div>
             <div className="grid grid-cols-2 gap-2 md:grid-cols-6">
               {[
-                { l: '当前概率', v: '62.4%', s: 'YES · Polymarket', c: 'text-slate-900' },
-                { l: '24h 变幅', v: '+3.21%', s: '↑ 3.21%', c: 'text-emerald-600' },
-                { l: '成交量 (7D)', v: '$18.42M', s: '↑ 27.6%', c: 'text-slate-900' },
-                { l: '流动性', v: '$6.73M', s: '↑ 18.4%', c: 'text-slate-900' },
-                { l: '最大地址集中度', v: '28.7%', s: '中等', c: 'text-amber-600' },
-                { l: '价差异常', v: '+2.14%', s: '高于均值', c: 'text-emerald-600' },
+                { l: '当前概率', v: scenario.probability, s: `YES · ${platform.split(',')[0]}`, c: 'text-slate-900' },
+                { l: '24h 变幅', v: scenario.change24h, s: scenario.change24h, c: scenario.change24h.startsWith('+') ? 'text-emerald-600' : 'text-red-500' },
+                { l: '成交量', v: scenario.volume, s: timeRange, c: 'text-slate-900' },
+                { l: '流动性', v: scenario.liquidity, s: risk, c: 'text-slate-900' },
+                { l: '最大地址集中度', v: scenario.concentration, s: risk, c: 'text-amber-600' },
+                { l: '价差异常', v: scenario.spread, s: '跨平台', c: 'text-emerald-600' },
               ].map((k) => (
                 <div key={k.l} className="rounded-lg bg-slate-50 p-2">
                   <div className="text-[10px] text-slate-400">{k.l}</div>
@@ -273,7 +268,7 @@ export function AlphaPrediction() {
             <div className="card p-2.5">
               <div className="mb-1 text-[11.5px] font-semibold">1 赔率趋势图</div>
               <DualLineChart
-                data={oddsData}
+                data={scenario.odds}
                 lines={[
                   { key: 'poly', color: '#f97316', name: 'Polymarket (YES)' },
                   { key: 'predict', color: '#3b82f6', name: 'Predict.fun (YES)' },
@@ -284,7 +279,7 @@ export function AlphaPrediction() {
             <div className="card p-2.5">
               <div className="mb-1 text-[11.5px] font-semibold">2 成交量变化图</div>
               <SimpleBarChart
-                data={volumeBars}
+                data={scenario.volumeBars}
                 bars={[
                   { key: 'poly', color: '#f97316', name: 'Polymarket' },
                   { key: 'predict', color: '#3b82f6', name: 'Predict.fun' },
@@ -347,37 +342,33 @@ export function AlphaPrediction() {
             <div className="card p-2.5">
               <div className="mb-1 flex items-center justify-between text-[11.5px] font-semibold">
                 6 AI 洞察摘要
-                <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-normal text-emerald-600">置信度：78%</span>
+                <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-normal text-emerald-600">
+                  置信度：{scenario.confidence}
+                </span>
               </div>
               <div className="mb-2 text-[12px] font-bold text-orange-600">Alpha 机会信号</div>
-              <p className="text-[11px] leading-relaxed text-slate-600">
-                过去 7 天内，YES 概率稳步上升并伴随成交量放大，主要由 Smart Money 在 May 15–18 的持续净买入驱动。Polymarket 与 Predict.fun 存在 3.4% 的追价差，且流动性充足。市场情绪偏多，若新闻面无重大利空，短期内上升趋势有望延续。
-              </p>
+              <p className="text-[11px] leading-relaxed text-slate-600">{scenario.summary}</p>
               <div className="mt-2 flex flex-wrap gap-1">
-                {['趋势偏多', '资金流入', '价差机会', '关注新闻风险'].map((t) => (
-                  <span key={t} className="rounded-full bg-orange-50 px-2 py-0.5 text-[10px] text-orange-600">{t}</span>
+                {[category, eventType, risk, '价差机会'].map((t) => (
+                  <span key={t} className="rounded-full bg-orange-50 px-2 py-0.5 text-[10px] text-orange-600">
+                    {t}
+                  </span>
                 ))}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right */}
-        <aside className="space-y-3">
+        {/* Right — scenario bound */}
+        <aside className="space-y-3" key={`right-${scenario.key}`}>
           <div className="card-soft p-3">
             <div className="mb-2 flex items-center justify-between text-[12px] font-semibold">
               Top Market Watchlist
-              <Link to="#" className="text-[10px] font-normal text-orange-500">查看全部 ›</Link>
+              <span className="text-[10px] font-normal text-orange-500">{category}</span>
             </div>
             <div className="space-y-1.5">
-              {[
-                { n: 1, t: '美联储是否在 6 月降息？', p: '62.4%', c: '+3.21%', src: 'Polymarket' },
-                { n: 2, t: 'ETH 是否在 7 月突破 $4000？', p: '54.7%', c: '-1.12%', src: 'Predict.fun' },
-                { n: 3, t: '比特币本月收盘价 > $70K？', p: '48.3%', c: '+0.84%', src: 'Polymarket' },
-                { n: 4, t: '美国大选共和党胜出？', p: '35.6%', c: '-2.43%', src: 'Predict.fun' },
-                { n: 5, t: 'SOL ETF 今年获批？', p: '28.9%', c: '+1.02%', src: 'Polymarket' },
-              ].map((m) => (
-                <div key={m.n} className="flex items-start gap-1.5 text-[11px]">
+              {scenario.watchlist.map((m) => (
+                <div key={m.n + m.t} className="flex items-start gap-1.5 text-[11px]">
                   <span className="w-3 text-slate-400">{m.n}</span>
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-medium text-slate-700">{m.t}</div>
@@ -396,16 +387,10 @@ export function AlphaPrediction() {
           <div className="card-soft p-3">
             <div className="mb-2 flex items-center justify-between text-[12px] font-semibold">
               Smart Money 活跃地址
-              <span className="text-[10px] font-normal text-orange-500">查看全部 ›</span>
+              <span className="text-[10px] font-normal text-orange-500">{risk}</span>
             </div>
             <div className="space-y-1.5 text-[11px]">
-              {[
-                ['0x8f3a…c2d4', '$2.74M', '68%'],
-                ['0x7ac1…9b12', '$1.86M', '64%'],
-                ['0x5d2e…af33', '$1.23M', '61%'],
-                ['0xaf90…3e11', '$967K', '59%'],
-                ['0x9b7c…1cde', '$812K', '58%'],
-              ].map((r) => (
+              {scenario.smartMoney.map((r) => (
                 <div key={r[0]} className="flex items-center gap-2">
                   <span className="flex-1 font-mono text-slate-600">{r[0]}</span>
                   <span className="font-medium">{r[1]}</span>
@@ -426,15 +411,21 @@ export function AlphaPrediction() {
                 </tr>
               </thead>
               <tbody>
-                {[
-                  ['Polymarket', '62.4%', '—', ''],
-                  ['Predict.fun', '65.8%', '+3.4%', '+5.45%'],
-                  ['Augur', '60.1%', '-2.3%', '-3.69%'],
-                ].map((r) => (
+                {scenario.spreads.map((r) => (
                   <tr key={r[0]} className="border-t border-slate-50">
                     <td className="py-1.5 font-medium text-slate-700">{r[0]}</td>
                     <td className="py-1.5 text-right">{r[1]}</td>
-                    <td className={`py-1.5 text-right ${r[2].startsWith('+') ? 'text-emerald-600' : r[2].startsWith('-') ? 'text-red-500' : 'text-slate-400'}`}>{r[2]}</td>
+                    <td
+                      className={`py-1.5 text-right ${
+                        r[2].startsWith('+')
+                          ? 'text-emerald-600'
+                          : r[2].startsWith('-')
+                            ? 'text-red-500'
+                            : 'text-slate-400'
+                      }`}
+                    >
+                      {r[2]}
+                    </td>
                   </tr>
                 ))}
               </tbody>
