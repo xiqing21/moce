@@ -22,19 +22,28 @@ export function AlphaStrategy() {
   const [hypothesis, setHypothesis] = useState(
     '当某协议 TVL 连续 3 天增长，且鲸鱼净流入增加时，相关代币未来 7 天表现如何？',
   )
-  const [timeRange, setTimeRange] = useState('2024-05-01 – 2025-05-18')
-  const [universe, setUniverse] = useState('Top 200 协议代币')
-  const [factors, setFactors] = useState('TVL, 鲸鱼净流入, 链上活跃度…')
-  const [horizon, setHorizon] = useState('7 天')
-  const [method, setMethod] = useState('事件驱动回测 (Event Study)')
-  const [benchmark, setBenchmark] = useState('BTC, ETH, 等权组合')
+  // Draft (UI selects) vs Applied (drives charts) — only Apply / 回测 commits
+  const [draftTimeRange, setDraftTimeRange] = useState('2024-05-01 – 2025-05-18')
+  const [draftUniverse, setDraftUniverse] = useState('Top 200 协议代币')
+  const [draftFactors, setDraftFactors] = useState('TVL, 鲸鱼净流入, 链上活跃度…')
+  const [draftHorizon, setDraftHorizon] = useState('7 天')
+  const [draftMethod, setDraftMethod] = useState('事件驱动回测 (Event Study)')
+  const [draftBenchmark, setDraftBenchmark] = useState('BTC, ETH, 等权组合')
+  const [applied, setApplied] = useState({
+    timeRange: '2024-05-01 – 2025-05-18',
+    universe: 'Top 200 协议代币',
+    factors: 'TVL, 鲸鱼净流入, 链上活跃度…',
+    horizon: '7 天',
+    method: '事件驱动回测 (Event Study)',
+    benchmark: 'BTC, ETH, 等权组合',
+  })
   const [note, setNote] = useState('')
   const [ran, setRan] = useState(false)
   const [runKey, setRunKey] = useState(0)
 
   const scen = useMemo(
-    () => resolveStrategyScenario(universe, horizon, method, factors),
-    [universe, horizon, method, factors, runKey],
+    () => resolveStrategyScenario(applied.universe, applied.horizon, applied.method, applied.factors),
+    [applied, runKey],
   )
   const scale = scen.equityScale
   const equity = useMemo(
@@ -46,13 +55,26 @@ export function AlphaStrategy() {
     [scale],
   )
 
-  const runBacktest = () => {
-    setRan(true)
+  const applyParams = () => {
+    setApplied({
+      timeRange: draftTimeRange,
+      universe: draftUniverse,
+      factors: draftFactors,
+      horizon: draftHorizon,
+      method: draftMethod,
+      benchmark: draftBenchmark,
+    })
     setRunKey((k) => k + 1)
+    setRan(true)
+    const next = resolveStrategyScenario(draftUniverse, draftHorizon, draftMethod, draftFactors)
     toast(
-      `回测完成：${universe} · ${horizon} · 样本 ${scen.samples} · Sharpe ${scen.sharpe}`,
+      `已应用参数并刷新数据：${draftUniverse} · ${draftHorizon} · 样本 ${next.samples} · Sharpe ${next.sharpe}`,
       'success',
     )
+  }
+
+  const runBacktest = () => {
+    applyParams()
   }
 
   return (
@@ -133,69 +155,52 @@ export function AlphaStrategy() {
             <div className="space-y-2 text-[11px]">
               <Field
                 label="时间范围"
-                value={timeRange}
+                value={draftTimeRange}
                 options={['2024-05-01 – 2025-05-18', '2024-01-01 – 2024-12-31', '2023-01-01 – 2025-05-18', '近 180 天']}
-                onChange={(v) => {
-                  setTimeRange(v)
-                  toast(`时间范围：${v}`, 'info')
-                }}
+                onChange={setDraftTimeRange}
               />
               <Field
                 label="研究对象"
-                value={universe}
+                value={draftUniverse}
                 options={['Top 200 协议代币', 'Top 50 协议代币', 'L2 原生代币', 'DeFi Bluechips']}
-                onChange={(v) => {
-                  setUniverse(v)
-                  toast(`研究对象：${v}`, 'info')
-                }}
+                onChange={setDraftUniverse}
               />
               <Field
                 label="因子集合"
-                value={factors}
+                value={draftFactors}
                 options={[
                   'TVL, 鲸鱼净流入, 链上活跃度…',
                   'TVL only',
                   '鲸鱼净流入 + 资金费率',
                   '活跃地址 + Gas + TVL',
                 ]}
-                onChange={(v) => {
-                  setFactors(v)
-                  toast(`因子：${v}`, 'info')
-                }}
+                onChange={setDraftFactors}
               />
               <Field
                 label="预测窗口"
-                value={horizon}
+                value={draftHorizon}
                 options={['3 天', '7 天', '14 天', '30 天']}
-                onChange={(v) => {
-                  setHorizon(v)
-                  toast(`预测窗口：${v}`, 'info')
-                }}
+                onChange={setDraftHorizon}
               />
               <Field
                 label="回测方式"
-                value={method}
+                value={draftMethod}
                 options={['事件驱动回测 (Event Study)', '滚动窗口回测', 'Walk-forward', '蒙特卡洛模拟']}
-                onChange={(v) => {
-                  setMethod(v)
-                  toast(`回测方式：${v}`, 'info')
-                }}
+                onChange={setDraftMethod}
               />
               <Field
                 label="基准对照"
-                value={benchmark}
+                value={draftBenchmark}
                 options={['BTC, ETH, 等权组合', '仅 BTC', '仅 ETH', '等权组合', '市场中性']}
-                onChange={(v) => {
-                  setBenchmark(v)
-                  toast(`基准：${v}`, 'info')
-                }}
+                onChange={setDraftBenchmark}
               />
-              <button type="button" className="btn-primary w-full !py-1.5 !text-[11px]" onClick={runBacktest}>
-                应用参数并回测
+              <p className="text-[10px] text-slate-400">修改下拉后不会立刻改图，请点下方「应用」</p>
+              <button type="button" className="btn-primary w-full !py-1.5 !text-[11px]" onClick={applyParams}>
+                应用参数并刷新数据
               </button>
               {ran && (
                 <div className="rounded-lg bg-emerald-50 px-2 py-1 text-[10px] text-emerald-700">
-                  ✓ 收益曲线已按窗口 {horizon} 重算
+                  ✓ 已应用：{applied.universe} · 窗口 {applied.horizon} · 因子 {applied.factors.slice(0, 18)}…
                 </div>
               )}
             </div>
@@ -217,8 +222,9 @@ export function AlphaStrategy() {
               className="w-full rounded-lg border border-slate-100 bg-slate-50 p-2 text-left hover:border-orange-200"
               onClick={() => {
                 setHypothesis('当某协议 TVL 连续 3 天增长，且鲸鱼净流入增加时，相关代币未来 7 天表现如何？')
-                setHorizon('7 天')
-                toast('已加载模板：TVL 增长 + 鲸鱼净流入', 'success')
+                setDraftHorizon('7 天')
+                setDraftFactors('TVL, 鲸鱼净流入, 链上活跃度…')
+                toast('已加载模板到草稿，请点「应用参数」生效', 'info')
               }}
             >
               <div className="flex items-center justify-between">
@@ -338,7 +344,7 @@ export function AlphaStrategy() {
                 <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-normal text-emerald-600">置信度：高</span>
               </div>
               <p className="mb-1.5 text-[11px] text-slate-500">
-                窗口 {horizon} · 方式 {method} · 基准 {benchmark}
+                窗口 {applied.horizon} · 方式 {applied.method} · 基准 {applied.benchmark}
               </p>
               <ul className="space-y-1 text-[11px] text-slate-600">
                 {scen.conclusion.map((line) => (
@@ -374,7 +380,7 @@ export function AlphaStrategy() {
               ))}
             </div>
             <div className="mt-2 text-[10px] text-slate-400">
-              样本 {scen.samples} · {universe} · {horizon}
+              样本 {scen.samples} · {applied.universe} · {applied.horizon}
             </div>
           </div>
 

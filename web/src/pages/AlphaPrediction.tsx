@@ -23,25 +23,47 @@ export function AlphaPrediction() {
   const [prompt, setPrompt] = useState(
     '分析某预测市场过去 7 天的赔率变化、成交量放大原因与大户布局行为',
   )
-  const [category, setCategory] = useState('加密市场')
-  const [platform, setPlatform] = useState('Polymarket, Predict.fun, 其他')
-  const [timeRange, setTimeRange] = useState('过去 7 天')
-  const [eventType, setEventType] = useState('宏观事件')
-  const [risk, setRisk] = useState('中等风险')
+  // Draft selects vs applied (charts only update on 应用)
+  const [draftCategory, setDraftCategory] = useState('加密市场')
+  const [draftPlatform, setDraftPlatform] = useState('Polymarket, Predict.fun, 其他')
+  const [draftTimeRange, setDraftTimeRange] = useState('过去 7 天')
+  const [draftEventType, setDraftEventType] = useState('宏观事件')
+  const [draftRisk, setDraftRisk] = useState('中等风险')
+  const [applied, setApplied] = useState({
+    category: '加密市场',
+    platform: 'Polymarket, Predict.fun, 其他',
+    timeRange: '过去 7 天',
+    eventType: '宏观事件',
+    risk: '中等风险',
+  })
   const [analyzed, setAnalyzed] = useState(false)
   const [scenarioKey, setScenarioKey] = useState(0)
 
   const scenario = useMemo(
-    () => resolveAlphaScenario(category, platform, timeRange, eventType, risk),
-    [category, platform, timeRange, eventType, risk, scenarioKey],
+    () =>
+      resolveAlphaScenario(
+        applied.category,
+        applied.platform,
+        applied.timeRange,
+        applied.eventType,
+        applied.risk,
+      ),
+    [applied, scenarioKey],
   )
 
   const runAnalysis = () => {
     setQuery(prompt)
+    setApplied({
+      category: draftCategory,
+      platform: draftPlatform,
+      timeRange: draftTimeRange,
+      eventType: draftEventType,
+      risk: draftRisk,
+    })
     setAnalyzed(true)
     setScenarioKey((k) => k + 1)
     toast(
-      `分析完成并已刷新全页数据：${category} · ${timeRange} · ${eventType} · ${risk}`,
+      `分析完成并已刷新全页数据：${draftCategory} · ${draftTimeRange} · ${draftEventType} · ${draftRisk}`,
       'success',
     )
   }
@@ -141,11 +163,8 @@ export function AlphaPrediction() {
                 <div className="mb-0.5 text-slate-400">市场分类</div>
                 <select
                   className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-slate-700 outline-none focus:border-orange-300"
-                  value={category}
-                  onChange={(e) => {
-                    setCategory(e.target.value)
-                    toast(`市场分类：${e.target.value}`, 'info')
-                  }}
+                  value={draftCategory}
+                  onChange={(e) => setDraftCategory(e.target.value)}
                 >
                   {['加密市场', '政治选举', '体育赛事', '宏观宏观', '科技产品'].map((o) => (
                     <option key={o}>{o}</option>
@@ -156,11 +175,8 @@ export function AlphaPrediction() {
                 <div className="mb-0.5 text-slate-400">平台</div>
                 <select
                   className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-slate-700 outline-none focus:border-orange-300"
-                  value={platform}
-                  onChange={(e) => {
-                    setPlatform(e.target.value)
-                    toast(`平台：${e.target.value}`, 'info')
-                  }}
+                  value={draftPlatform}
+                  onChange={(e) => setDraftPlatform(e.target.value)}
                 >
                   {[
                     'Polymarket, Predict.fun, 其他',
@@ -177,11 +193,8 @@ export function AlphaPrediction() {
                 <div className="mb-0.5 text-slate-400">时间范围</div>
                 <select
                   className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-slate-700 outline-none focus:border-orange-300"
-                  value={timeRange}
-                  onChange={(e) => {
-                    setTimeRange(e.target.value)
-                    toast(`时间范围：${e.target.value}`, 'info')
-                  }}
+                  value={draftTimeRange}
+                  onChange={(e) => setDraftTimeRange(e.target.value)}
                 >
                   {['过去 24 小时', '过去 7 天', '过去 30 天', '过去 90 天'].map((o) => (
                     <option key={o}>{o}</option>
@@ -192,11 +205,8 @@ export function AlphaPrediction() {
                 <div className="mb-0.5 text-slate-400">事件类型</div>
                 <select
                   className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-slate-700 outline-none focus:border-orange-300"
-                  value={eventType}
-                  onChange={(e) => {
-                    setEventType(e.target.value)
-                    toast(`事件类型：${e.target.value}`, 'info')
-                  }}
+                  value={draftEventType}
+                  onChange={(e) => setDraftEventType(e.target.value)}
                 >
                   {['宏观事件', '协议升级', '监管新闻', '链上异动', '社交媒体'].map((o) => (
                     <option key={o}>{o}</option>
@@ -207,17 +217,15 @@ export function AlphaPrediction() {
                 <div className="mb-0.5 text-slate-400">风险等级</div>
                 <select
                   className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-slate-700 outline-none focus:border-orange-300"
-                  value={risk}
-                  onChange={(e) => {
-                    setRisk(e.target.value)
-                    toast(`风险等级：${e.target.value}`, 'info')
-                  }}
+                  value={draftRisk}
+                  onChange={(e) => setDraftRisk(e.target.value)}
                 >
                   {['低风险', '中等风险', '高风险', '全部'].map((o) => (
                     <option key={o}>{o}</option>
                   ))}
                 </select>
               </label>
+              <p className="text-[10px] text-slate-400">下拉仅改草稿，点下方按钮后全页数据才更新</p>
               <button type="button" className="btn-primary w-full !py-1.5 !text-[11px]" onClick={runAnalysis}>
                 应用筛选并分析
               </button>
@@ -243,16 +251,16 @@ export function AlphaPrediction() {
             <div className="mb-2 flex items-center justify-between text-[12px] font-semibold text-slate-700">
               市场结构洞察卡
               <span className="text-[10px] font-normal text-orange-500">
-                {category} · {timeRange}
+                {applied.category} · {applied.timeRange}
               </span>
             </div>
             <div className="grid grid-cols-2 gap-2 md:grid-cols-6">
               {[
-                { l: '当前概率', v: scenario.probability, s: `YES · ${platform.split(',')[0]}`, c: 'text-slate-900' },
+                { l: '当前概率', v: scenario.probability, s: `YES · ${applied.platform.split(',')[0]}`, c: 'text-slate-900' },
                 { l: '24h 变幅', v: scenario.change24h, s: scenario.change24h, c: scenario.change24h.startsWith('+') ? 'text-emerald-600' : 'text-red-500' },
-                { l: '成交量', v: scenario.volume, s: timeRange, c: 'text-slate-900' },
-                { l: '流动性', v: scenario.liquidity, s: risk, c: 'text-slate-900' },
-                { l: '最大地址集中度', v: scenario.concentration, s: risk, c: 'text-amber-600' },
+                { l: '成交量', v: scenario.volume, s: applied.timeRange, c: 'text-slate-900' },
+                { l: '流动性', v: scenario.liquidity, s: applied.risk, c: 'text-slate-900' },
+                { l: '最大地址集中度', v: scenario.concentration, s: applied.risk, c: 'text-amber-600' },
                 { l: '价差异常', v: scenario.spread, s: '跨平台', c: 'text-emerald-600' },
               ].map((k) => (
                 <div key={k.l} className="rounded-lg bg-slate-50 p-2">
@@ -349,7 +357,7 @@ export function AlphaPrediction() {
               <div className="mb-2 text-[12px] font-bold text-orange-600">Alpha 机会信号</div>
               <p className="text-[11px] leading-relaxed text-slate-600">{scenario.summary}</p>
               <div className="mt-2 flex flex-wrap gap-1">
-                {[category, eventType, risk, '价差机会'].map((t) => (
+                {[applied.category, applied.eventType, applied.risk, '价差机会'].map((t) => (
                   <span key={t} className="rounded-full bg-orange-50 px-2 py-0.5 text-[10px] text-orange-600">
                     {t}
                   </span>
@@ -364,7 +372,7 @@ export function AlphaPrediction() {
           <div className="card-soft p-3">
             <div className="mb-2 flex items-center justify-between text-[12px] font-semibold">
               Top Market Watchlist
-              <span className="text-[10px] font-normal text-orange-500">{category}</span>
+              <span className="text-[10px] font-normal text-orange-500">{applied.category}</span>
             </div>
             <div className="space-y-1.5">
               {scenario.watchlist.map((m) => (
@@ -387,7 +395,7 @@ export function AlphaPrediction() {
           <div className="card-soft p-3">
             <div className="mb-2 flex items-center justify-between text-[12px] font-semibold">
               Smart Money 活跃地址
-              <span className="text-[10px] font-normal text-orange-500">{risk}</span>
+              <span className="text-[10px] font-normal text-orange-500">{applied.risk}</span>
             </div>
             <div className="space-y-1.5 text-[11px]">
               {scenario.smartMoney.map((r) => (

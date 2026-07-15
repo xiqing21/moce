@@ -15,8 +15,7 @@ import {
   Zap,
 } from 'lucide-react'
 import { ProductTabs } from '../components/layout/ProductTabs'
-import { InsightSideDecor } from '../components/effects/InsightSideDecor'
-import { OrbitDecor } from '../components/effects/FloatCard'
+import { InsightLeftStickers, InsightRightStickers } from '../components/effects/InsightSideStickers'
 import { useApp } from '../context/AppContext'
 
 const CAPABILITIES = [
@@ -54,24 +53,38 @@ export function InsightLanding() {
   }
 
   return (
-    <div className="mx-auto max-w-[1280px]">
-      <div className="mb-4 mt-1 flex justify-center">
+    <div className="mx-auto max-w-[1360px]">
+      <div className="mb-3 mt-1 flex justify-center">
         <ProductTabs active="insight" />
       </div>
 
-      <div className="relative min-h-[620px]">
-        <OrbitDecor />
-        <InsightSideDecor />
+      <div className="hero-with-stickers">
+        <InsightLeftStickers />
 
-        <div className="relative z-10 mx-auto max-w-[720px] pt-4 text-center">
-          <h1 className="text-[32px] font-extrabold tracking-tight text-slate-900 sm:text-[38px]">
+        <div className="hero-center pt-1 text-center">
+          <h1 className="text-[28px] font-extrabold tracking-tight text-slate-900 sm:text-[36px]">
             从自然语言到 <span className="text-moce-orange">Web3 洞察</span>
           </h1>
           <p className="mt-2 text-[13px] text-slate-500">
             面向链上分析、协议运营与研究团队的 AI 数据分析入口。
           </p>
 
-          <div className="card mt-6 p-4 text-left">
+          <div className="sticker-mobile-strip mt-3 lg:hidden">
+            <div className="card-soft p-3 text-left text-[11px]">
+              <b>Arbitrum TVL</b>
+              <div className="text-lg font-bold">$2.48B</div>
+            </div>
+            <div className="card-soft p-3 text-left text-[11px]">
+              <b>Query Result</b>
+              <div className="text-lg font-bold text-emerald-600">1.32s</div>
+            </div>
+            <div className="card-soft p-3 text-left text-[11px]">
+              <b>Token 净流入</b>
+              <div className="text-slate-600">USDC $126M</div>
+            </div>
+          </div>
+
+          <div className="card mt-5 p-4 text-left">
             <div className="flex items-center gap-2 rounded-xl border border-orange-200 bg-orange-50/40 px-3 py-2.5">
               <input
                 className="flex-1 bg-transparent text-[13px] text-slate-700 outline-none placeholder:text-slate-400"
@@ -171,6 +184,8 @@ export function InsightLanding() {
             </Link>
           </div>
         </div>
+
+        <InsightRightStickers />
       </div>
     </div>
   )

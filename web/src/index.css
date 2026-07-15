@@ -404,6 +404,70 @@ a.btn-orange-outline {
   padding-bottom: 24px;
 }
 
+/* —— Hero with side stickers (图1 / 图2) ——
+ * 三栏网格：侧栏始终在 md+ 显示，不再依赖 xl:hidden
+ */
+.hero-with-stickers {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  align-items: start;
+  position: relative;
+  min-height: 560px;
+}
+
+@media (min-width: 1024px) {
+  .hero-with-stickers {
+    grid-template-columns: 220px minmax(0, 1fr) 230px;
+    gap: 0.75rem 1rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .hero-with-stickers {
+    grid-template-columns: 240px minmax(0, 1fr) 250px;
+    gap: 1rem 1.25rem;
+  }
+}
+
+.hero-with-stickers .sticker-col {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .hero-with-stickers .sticker-col {
+    display: block;
+    position: sticky;
+    top: 72px;
+    z-index: 20;
+  }
+}
+
+.hero-with-stickers .hero-center {
+  min-width: 0;
+  z-index: 10;
+}
+
+/* Mobile: stickers as horizontal strip under hero title optional */
+@media (max-width: 1023px) {
+  .sticker-mobile-strip {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding: 0.25rem 0 0.75rem;
+    -webkit-overflow-scrolling: touch;
+  }
+  .sticker-mobile-strip > * {
+    flex: 0 0 200px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .sticker-mobile-strip {
+    display: none;
+  }
+}
+
 /* dark mode light touch */
 .dark-mode {
   color-scheme: dark;

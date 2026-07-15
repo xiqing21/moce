@@ -10,36 +10,47 @@ import {
 } from 'lucide-react'
 import { ProductTabs } from '../components/layout/ProductTabs'
 import { AlphaIcon, DataAgentIcon, InsightIcon } from '../components/ui/MoceLogo'
-import { DecorCarousel } from '../components/effects/DecorCarousel'
-import { FloatBadge, OrbitDecor } from '../components/effects/FloatCard'
+import { HomeLeftStickers, HomeRightStickers } from '../components/effects/HomeSideStickers'
 import { useApp } from '../context/AppContext'
 
 export function Home() {
   const { toast, setQuery } = useApp()
 
   return (
-    <div className="mx-auto max-w-[1280px]">
-      <div className="mb-5 mt-1 flex justify-center">
+    <div className="mx-auto max-w-[1360px]">
+      <div className="mb-4 mt-1 flex justify-center">
         <ProductTabs active="none" />
       </div>
 
-      <div className="relative min-h-[640px]">
-        <OrbitDecor />
-        {/* Home uses softer carousel + product matrix focus; keep subtle side decor */}
-        <div className="opacity-80">
-          <DecorCarousel side="left" intervalMs={3600} />
-          <DecorCarousel side="right" intervalMs={4200} />
-        </div>
+      {/* grid order: left | center | right — stickers always visible ≥1024px */}
+      <div className="hero-with-stickers">
+        <HomeLeftStickers />
 
-        <div className="relative z-10 mx-auto max-w-[860px] pt-2 text-center">
-          <h1 className="text-[34px] font-extrabold tracking-tight text-slate-900 sm:text-[40px]">
+        <div className="hero-center text-center">
+          <h1 className="text-[30px] font-extrabold tracking-tight text-slate-900 sm:text-[38px]">
             One Brand, <span className="text-moce-orange">Three Intelligence Layers</span>
           </h1>
           <p className="mt-2 text-[13.5px] text-slate-500">
             一个品牌，连接 Web3 数据分析、数据生产与 Alpha 发现。
           </p>
 
-          <div className="mt-7 grid grid-cols-1 gap-4 md:grid-cols-3">
+          {/* Mobile strip of stickers so narrow screens still see them */}
+          <div className="sticker-mobile-strip mt-4 lg:hidden">
+            <div className="card-soft p-3 text-left text-[11px]">
+              <b>Ask a Question</b>
+              <p className="mt-1 text-slate-600">Which chains had the highest TVL growth…</p>
+            </div>
+            <div className="card-soft p-3 text-left text-[11px]">
+              <b>Odds Trend</b>
+              <p className="mt-1 text-2xl font-bold text-orange-500">68%</p>
+            </div>
+            <div className="card-soft p-3 text-left text-[11px]">
+              <b>Lineage</b>
+              <p className="mt-1 text-slate-600">raw_tx → cleansed_tx</p>
+            </div>
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
             <Link
               to="/insight"
               className="card group relative overflow-hidden p-5 text-left transition hover:-translate-y-1 hover:shadow-lg hover:shadow-orange-100"
@@ -139,21 +150,6 @@ export function Home() {
             ))}
           </div>
 
-          <div className="mt-5 flex flex-wrap justify-center gap-2">
-            <FloatBadge delay={0.1} to="/insight">
-              ✦ 试一下 Insight
-            </FloatBadge>
-            <FloatBadge delay={0.3} to="/data-agent/intake">
-              ◈ Data Agent 全流程
-            </FloatBadge>
-            <FloatBadge delay={0.5} to="/alpha/strategy">
-              A 策略回测
-            </FloatBadge>
-            <FloatBadge delay={0.7} to="/pricing">
-              $ 查看定价
-            </FloatBadge>
-          </div>
-
           <div className="mt-6 flex flex-wrap items-center justify-center gap-8 text-[11.5px] text-slate-500">
             {[
               { icon: Shield, title: '安全可信', desc: '链上身份与权限体系' },
@@ -176,6 +172,8 @@ export function Home() {
             ))}
           </div>
         </div>
+
+        <HomeRightStickers />
       </div>
     </div>
   )
