@@ -1,3 +1,4 @@
+import { useSearchParams } from 'react-router-dom'
 import {
   AlertTriangle,
   RefreshCw,
@@ -7,9 +8,11 @@ import {
   Wrench,
 } from 'lucide-react'
 import { ProductTabs } from '../components/layout/ProductTabs'
-import { StepBar } from '../components/ui/StepBar'
+import { AgentStepNav, AIOPS_FLOW } from '../components/layout/AgentStepNav'
+import { StepBar, type Step } from '../components/ui/StepBar'
 import { SparkLine } from '../components/charts/MiniCharts'
 import { metricSparks } from '../data/mock'
+import { useApp } from '../context/AppContext'
 
 const tasks = [
   { name: 'flink_job_l2_competition_realtime_v1', type: 'Flink SQL', env: 'prod', level: '严重', time: '2 分钟前', active: true },
@@ -19,27 +22,59 @@ const tasks = [
 ]
 
 export function DataAgentAIOps() {
+  const [params, setParams] = useSearchParams()
+  const { toast, repairing, setRepairing, aiopsStep, setAiopsStep } = useApp()
+  const step = Number(params.get('step') || aiopsStep || 1)
+
+  const steps: Step[] = AIOPS_FLOW.map((s) => ({
+    id: s.id,
+    label: s.label,
+    status: s.id < step ? 'done' : s.id === step ? 'active' : 'pending',
+  }))
+
+  const goStep = (n: number) => {
+    setAiopsStep(n)
+    setParams(n === 1 ? {} : { step: String(n) })
+    toast(`AIOps 阶段：${AIOPS_FLOW[n - 1]?.label}`, 'info')
+  }
+
   return (
     <div className="mx-auto max-w-[1280px]">
       <div className="mb-3 mt-1 flex justify-center">
         <ProductTabs active="agent" />
       </div>
+      <AgentStepNav activeId={0} />
 
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <StepBar
-          steps={[
-            { id: 1, label: '异常检测', status: 'active' },
-            { id: 2, label: '根因分析', status: 'pending' },
-            { id: 3, label: '影响评估', status: 'pending' },
-            { id: 4, label: '优化建议', status: 'pending' },
-            { id: 5, label: '修复执行', status: 'pending' },
-            { id: 6, label: '复盘沉淀', status: 'pending' },
-          ]}
-        />
+        <StepBar steps={steps} />
         <div className="flex items-center gap-2 text-[11px] text-slate-500">
-          <span className="flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />数据刷新：10s 前</span>
-          <button className="btn-outline !py-1 !text-[11px]"><RefreshCw size={11} /> 自动刷新</button>
+          <span className="flex items-center gap-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            数据刷新：10s 前
+          </span>
+          <button
+            type="button"
+            className="btn-outline !py-1 !text-[11px]"
+            onClick={() => toast('指标已刷新', 'success')}
+          >
+            <RefreshCw size={11} /> 自动刷新
+          </button>
         </div>
+      </div>
+
+      <div className="mb-3 flex flex-wrap justify-center gap-1.5">
+        {AIOPS_FLOW.map((s) => (
+          <button
+            key={s.id}
+            type="button"
+            onClick={() => goStep(s.id)}
+            className={`rounded-full px-2.5 py-1 text-[10.5px] font-medium ${
+              step === s.id ? 'bg-red-100 text-red-700' : 'bg-white text-slate-500 ring-1 ring-slate-200'
+            }`}
+          >
+            {s.id}. {s.label}
+          </button>
+        ))}
       </div>
 
       <div className="mb-3">
@@ -265,12 +300,51 @@ export function DataAgentAIOps() {
 
       {/* Bottom actions */}
       <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-        <button className="btn-outline !text-[12px]">发送告警</button>
-        <button className="btn-outline !text-[12px]"><RotateCcw size={13} /> 自动重启任务</button>
-        <button className="btn-outline !text-[12px]"><Wrench size={13} /> 生成优化方案</button>
-        <button className="btn-outline !text-[12px]">回滚上一个稳定版本</button>
-        <button className="btn-outline !text-[12px]">创建工单</button>
-        <button className="btn-primary !text-[12px]"><Shield size={13} /> 一键执行修复</button>
+        <button type="button" className="btn-outline !text-[12px]" onClick={() => toast('告警已推送到 Slack / 飞书（Mock）', 'success')}>
+          发送告警
+        </button>
+        <button
+          type="button"
+          className="btn-outline !text-[12px]"
+          onClick={() => {
+            goStep(5)
+            toast('任务重启中… 预计 30s', 'info')
+          }}
+        >
+          <RotateCcw size={13} /> 自动重启任务
+        </button>
+        <button
+          type="button"
+          className="btn-outline !text-[12px]"
+          onClick={() => {
+            goStep(4)
+            toast('已生成优化方案：Key 重分区 + Checkpoint 调大', 'info')
+          }}
+        >
+          <Wrench size={13} /> 生成优化方案
+        </button>
+        <button type="button" className="btn-outline !text-[12px]" onClick={() => toast('已回滚到 v1.17 稳定版本', 'success')}>
+          回滚上一个稳定版本
+        </button>
+        <button type="button" className="btn-outline !text-[12px]" onClick={() => toast('工单 #OPS-2048 已创建', 'success')}>
+          创建工单
+        </button>
+        <button
+          type="button"
+          className="btn-primary !text-[12px]"
+          disabled={repairing}
+          onClick={async () => {
+            setRepairing(true)
+            goStep(5)
+            toast('一键修复执行中…', 'info')
+            await new Promise((r) => setTimeout(r, 1200))
+            setRepairing(false)
+            goStep(6)
+            toast('修复完成：任务已恢复，进入复盘', 'success')
+          }}
+        >
+          <Shield size={13} /> {repairing ? '修复中…' : '一键执行修复'}
+        </button>
       </div>
     </div>
   )

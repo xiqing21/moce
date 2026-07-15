@@ -11,8 +11,11 @@ import { ProductTabs } from '../components/layout/ProductTabs'
 import { StepBar } from '../components/ui/StepBar'
 import { MultiMetricChart } from '../components/charts/MiniCharts'
 import { dailyResults, multiMetricTrend } from '../data/mock'
+import { useApp } from '../context/AppContext'
 
 export function InsightQuery() {
+  const { query, toast } = useApp()
+
   return (
     <div className="mx-auto max-w-[1280px]">
       <div className="mb-3 mt-1 flex justify-center">
@@ -28,7 +31,7 @@ export function InsightQuery() {
               分析请求
             </div>
             <p className="text-[12px] leading-relaxed text-slate-600">
-              比较 Arbitrum 和 Optimism 过去 7 天的 TVL 及净流入趋势。
+              {query || '比较 Arbitrum 和 Optimism 过去 7 天的 TVL 及净流入趋势。'}
             </p>
             <div className="mt-2 text-[10px] text-slate-400">今天 10:24</div>
           </div>
@@ -115,13 +118,25 @@ ORDER BY date ASC, chain;`}</pre>
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Link to="/insight/charts" className="btn-outline !text-[12px]">
+              <Link
+                to="/insight/charts"
+                className="btn-outline !text-[12px]"
+                onClick={() => toast('进入 NL to Chart', 'info')}
+              >
                 <BarChart3 size={13} /> 生成图表
               </Link>
-              <Link to="/insight/report" className="btn-outline !text-[12px]">
+              <Link
+                to="/insight/report"
+                className="btn-outline !text-[12px]"
+                onClick={() => toast('生成智能报告', 'info')}
+              >
                 <FileText size={13} /> 生成报告
               </Link>
-              <Link to="/insight/report" className="btn-primary !text-[12px]">
+              <Link
+                to="/insight/report"
+                className="btn-primary !text-[12px]"
+                onClick={() => toast('一键生成图文报告…', 'success')}
+              >
                 <FileText size={13} /> 一键生成图文报告
               </Link>
             </div>

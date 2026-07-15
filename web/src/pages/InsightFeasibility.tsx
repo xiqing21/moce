@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
   AlertTriangle,
   ArrowRight,
@@ -15,8 +15,12 @@ import {
 } from 'lucide-react'
 import { ProductTabs } from '../components/layout/ProductTabs'
 import { StepBar } from '../components/ui/StepBar'
+import { useApp } from '../context/AppContext'
 
 export function InsightFeasibility() {
+  const navigate = useNavigate()
+  const { query, toast } = useApp()
+
   return (
     <div className="mx-auto max-w-[1200px]">
       <div className="mb-3 mt-1 flex justify-center">
@@ -54,7 +58,7 @@ export function InsightFeasibility() {
 
           <div className="mb-3 text-[11px] text-slate-500">用户问题</div>
           <div className="rounded-xl border border-orange-100 bg-orange-50/50 px-3 py-2.5 text-[12.5px] leading-relaxed text-slate-700">
-            分析过去 30 天 Arbitrum 与 Optimism 的 TVL 趋势及资金净流入对比
+            {query || '分析过去 30 天 Arbitrum 与 Optimism 的 TVL 趋势及资金净流入对比'}
           </div>
 
           <div className="mt-4 text-[11px] font-medium text-slate-500">意图识别结果</div>
@@ -157,9 +161,16 @@ export function InsightFeasibility() {
             <p className="text-[11.5px] text-emerald-800/80">已匹配结果表，数据完整，可直接生成分析。</p>
             <div className="mt-2 flex items-center justify-between">
               <span className="text-[11px] text-slate-500">预计耗时：<b className="text-slate-700">2.3s</b></span>
-              <Link to="/insight/query" className="btn-primary !py-1.5 !text-[12px]">
+              <button
+                type="button"
+                className="btn-primary !py-1.5 !text-[12px]"
+                onClick={() => {
+                  toast('开始执行查询…', 'info')
+                  navigate('/insight/query')
+                }}
+              >
                 开始查询 <ArrowRight size={13} />
-              </Link>
+              </button>
             </div>
           </div>
 
@@ -170,7 +181,16 @@ export function InsightFeasibility() {
             <p className="text-[11.5px] text-amber-900/70">没有结果表但有底层明细，建议缩小范围。</p>
             <p className="mt-1 text-[11px] text-slate-500">建议：缩小时间范围或聚焦单链</p>
             <div className="mt-2 flex justify-end">
-              <button className="btn-orange-outline !py-1 !text-[11px]">缩小范围并执行 &gt;</button>
+              <button
+                type="button"
+                className="btn-orange-outline !py-1 !text-[11px]"
+                onClick={() => {
+                  toast('已缩小范围并进入查询（Mock）', 'info')
+                  navigate('/insight/query')
+                }}
+              >
+                缩小范围并执行 &gt;
+              </button>
             </div>
           </div>
 
@@ -181,9 +201,16 @@ export function InsightFeasibility() {
             <p className="text-[11.5px] text-red-800/70">缺少底层数据，需先补充数据资产。</p>
             <p className="mt-1 text-[11px] text-slate-500">缺失：链级资金标注维度明细</p>
             <div className="mt-2 flex justify-end">
-              <Link to="/data-request" className="btn-orange-outline !py-1 !text-[11px]">
+              <button
+                type="button"
+                className="btn-orange-outline !py-1 !text-[11px]"
+                onClick={() => {
+                  toast('已生成数据需求卡', 'warning')
+                  navigate('/data-request')
+                }}
+              >
                 生成数据需求卡 &gt;
-              </Link>
+              </button>
             </div>
           </div>
         </div>

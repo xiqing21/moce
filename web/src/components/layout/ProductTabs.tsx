@@ -17,8 +17,8 @@ const TABS = [
     key: 'agent',
     label: 'MOCE Data Agent',
     icon: DataAgentIcon,
-    match: (p: string) => p.startsWith('/data-agent'),
-    to: '/data-agent',
+    match: (p: string) => p.startsWith('/data-agent') || p === '/data-request',
+    to: '/data-agent/intake',
   },
   {
     key: 'alpha',

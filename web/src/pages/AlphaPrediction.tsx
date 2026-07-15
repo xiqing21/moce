@@ -8,6 +8,7 @@ import {
   TrendingUp,
 } from 'lucide-react'
 import { ProductTabs } from '../components/layout/ProductTabs'
+import { useApp } from '../context/AppContext'
 import {
   DualLineChart,
   SimpleBarChart,
@@ -22,6 +23,8 @@ import {
 } from '../data/mock'
 
 export function AlphaPrediction() {
+  const { toast, toggleWatch } = useApp()
+
   return (
     <div className="mx-auto max-w-[1280px]">
       <div className="mb-3 mt-1 flex justify-center">
@@ -67,10 +70,21 @@ export function AlphaPrediction() {
             </p>
           </div>
           <div className="flex flex-wrap gap-1.5">
-            <button className="btn-outline !text-[11px] !py-1.5"><TrendingUp size={12} /> 生成市场报告</button>
-            <button className="btn-outline !text-[11px] !py-1.5"><Plus size={12} /> 加入监控</button>
-            <button className="btn-outline !text-[11px] !py-1.5"><Download size={12} /> 导出分析</button>
-            <button className="btn-outline !text-[11px] !py-1.5"><Share2 size={12} /> 分享洞察</button>
+            <button type="button" className="btn-outline !py-1.5 !text-[11px]" onClick={() => toast('市场报告已生成（Mock）', 'success')}>
+              <TrendingUp size={12} /> 生成市场报告
+            </button>
+            <button type="button" className="btn-outline !py-1.5 !text-[11px]" onClick={() => toggleWatch('market-main')}>
+              <Plus size={12} /> 加入监控
+            </button>
+            <button type="button" className="btn-outline !py-1.5 !text-[11px]" onClick={() => toast('分析已导出 CSV', 'success')}>
+              <Download size={12} /> 导出分析
+            </button>
+            <button type="button" className="btn-outline !py-1.5 !text-[11px]" onClick={() => toast('分享链接已复制', 'info')}>
+              <Share2 size={12} /> 分享洞察
+            </button>
+            <Link to="/alpha/strategy" className="btn-primary !py-1.5 !text-[11px]">
+              打开 Strategy Lab →
+            </Link>
           </div>
         </div>
       </div>

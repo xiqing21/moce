@@ -6,6 +6,7 @@ import {
   FileText,
 } from 'lucide-react'
 import { ProductTabs } from '../components/layout/ProductTabs'
+import { useApp } from '../context/AppContext'
 import {
   DonutChart,
   EquityChart,
@@ -15,6 +16,8 @@ import {
 import { drawdownCurve, equityCurve, factorBuckets } from '../data/mock'
 
 export function AlphaStrategy() {
+  const { toast, toggleWatch } = useApp()
+
   return (
     <div className="mx-auto max-w-[1280px]">
       <div className="mb-3 mt-1 flex justify-center">
@@ -31,10 +34,34 @@ export function AlphaStrategy() {
           </p>
         </div>
         <div className="flex flex-wrap gap-1.5">
-          <button className="btn-primary !text-[11px] !py-1.5"><Play size={12} /> 运行回测</button>
-          <button className="btn-outline !text-[11px] !py-1.5"><FileText size={12} /> 生成策略报告</button>
-          <button className="btn-outline !text-[11px] !py-1.5"><Save size={12} /> 保存为监控模板</button>
-          <button className="btn-outline !text-[11px] !py-1.5"><Star size={12} /> 加入 Alpha Watchlist</button>
+          <button
+            type="button"
+            className="btn-primary !py-1.5 !text-[11px]"
+            onClick={() => toast('回测完成：样本 2,842 · Sharpe 1.72 · 耗时 3.1s', 'success')}
+          >
+            <Play size={12} /> 运行回测
+          </button>
+          <button
+            type="button"
+            className="btn-outline !py-1.5 !text-[11px]"
+            onClick={() => toast('策略报告已生成 PDF', 'success')}
+          >
+            <FileText size={12} /> 生成策略报告
+          </button>
+          <button
+            type="button"
+            className="btn-outline !py-1.5 !text-[11px]"
+            onClick={() => toast('已保存为监控模板', 'success')}
+          >
+            <Save size={12} /> 保存为监控模板
+          </button>
+          <button
+            type="button"
+            className="btn-outline !py-1.5 !text-[11px]"
+            onClick={() => toggleWatch('strategy-tvl-whale')}
+          >
+            <Star size={12} /> 加入 Alpha Watchlist
+          </button>
         </div>
       </div>
 

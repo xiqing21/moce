@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
   BarChart3,
   CheckCircle2,
@@ -22,9 +22,10 @@ import {
   SimpleBarChart,
 } from '../components/charts/MiniCharts'
 import { tvlCompare30d, tvlDelta } from '../data/mock'
+import { useApp } from '../context/AppContext'
 
 const chartTypes = [
-  { icon: LineIcon, label: '趋势图', active: true },
+  { icon: LineIcon, label: '趋势图' },
   { icon: BarChart3, label: '柱状图' },
   { icon: PieIcon, label: '饼图' },
   { icon: BarChart3, label: '多维对比' },
@@ -35,6 +36,9 @@ const chartTypes = [
 ]
 
 export function InsightCharts() {
+  const navigate = useNavigate()
+  const { chartType, setChartType, toast, query } = useApp()
+
   return (
     <div className="mx-auto max-w-[1280px]">
       <div className="mb-3 mt-1 flex justify-center">
@@ -67,7 +71,7 @@ export function InsightCharts() {
           <MessageSquare size={13} className="text-orange-500" />
           当前问题
         </div>
-        <span className="text-slate-600">生成过去 30 天 Arbitrum 与 Optimism 的 TVL 趋势对比图</span>
+        <span className="text-slate-600">{query || '生成过去 30 天 Arbitrum 与 Optimism 的 TVL 趋势对比图'}</span>
         <span className="ml-auto flex flex-wrap items-center gap-2 text-[11px]">
           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-600">
             <CheckCircle2 size={11} /> 查询完成
@@ -176,7 +180,14 @@ export function InsightCharts() {
         <aside className="card p-4">
           <div className="mb-3 flex items-center justify-between text-[13px] font-bold text-slate-800">
             图表配置
-            <button className="flex items-center gap-1 text-[11px] font-medium text-orange-500">
+            <button
+              type="button"
+              className="flex items-center gap-1 text-[11px] font-medium text-orange-500"
+              onClick={() => {
+                setChartType('趋势图')
+                toast('图表配置已重置', 'info')
+              }}
+            >
               <RefreshCw size={12} /> 重置
             </button>
           </div>
@@ -204,8 +215,24 @@ export function InsightCharts() {
               </div>
             </div>
             <div className="flex gap-2 pt-1">
-              <button className="btn-outline flex-1 !text-[11px] !py-1.5">更换图表类型</button>
-              <button className="btn-outline flex-1 !text-[11px] !py-1.5">编辑图表配置</button>
+              <button
+                type="button"
+                className="btn-outline flex-1 !py-1.5 !text-[11px]"
+                onClick={() => {
+                  const next = chartType === '趋势图' ? '柱状图' : chartType === '柱状图' ? '饼图' : '趋势图'
+                  setChartType(next)
+                  toast(`已切换图表类型：${next}`, 'info')
+                }}
+              >
+                更换图表类型
+              </button>
+              <button
+                type="button"
+                className="btn-outline flex-1 !py-1.5 !text-[11px]"
+                onClick={() => toast('高级配置面板已打开（Mock）', 'info')}
+              >
+                编辑图表配置
+              </button>
             </div>
           </div>
         </aside>
@@ -217,10 +244,15 @@ export function InsightCharts() {
           {chartTypes.map((c) => (
             <button
               key={c.label}
+              type="button"
+              onClick={() => {
+                setChartType(c.label)
+                toast(`已选择：${c.label}`, 'info')
+              }}
               className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1.5 text-[11px] ${
-                c.active
+                chartType === c.label
                   ? 'border-orange-300 bg-orange-50 text-orange-600'
-                  : 'border-slate-200 bg-white text-slate-500'
+                  : 'border-slate-200 bg-white text-slate-500 hover:border-orange-200'
               }`}
             >
               <c.icon size={12} />
@@ -229,21 +261,44 @@ export function InsightCharts() {
           ))}
         </div>
         <div className="ml-auto flex flex-wrap items-center gap-2">
-          <button className="btn-outline !text-[11px] !py-1.5">
+          <button
+            type="button"
+            className="btn-outline !py-1.5 !text-[11px]"
+            onClick={() => toast('已导出 PNG（Mock）', 'success')}
+          >
             <Download size={12} /> 导出 PNG
           </button>
-          <button className="btn-outline !text-[11px] !py-1.5">
+          <button
+            type="button"
+            className="btn-outline !py-1.5 !text-[11px]"
+            onClick={() => toast('已导出 SVG（Mock）', 'success')}
+          >
             <Download size={12} /> 导出 SVG
           </button>
-          <button className="btn-outline !text-[11px] !py-1.5">
+          <button
+            type="button"
+            className="btn-outline !py-1.5 !text-[11px]"
+            onClick={() => toast('已导出 PDF（Mock）', 'success')}
+          >
             <Download size={12} /> 导出 PDF
           </button>
-          <Link to="/insight/report" className="btn-outline !text-[11px] !py-1.5">
+          <button
+            type="button"
+            className="btn-outline !py-1.5 !text-[11px]"
+            onClick={() => navigate('/insight/report')}
+          >
             <FileText size={12} /> 生成报告
-          </Link>
-          <Link to="/insight/report" className="btn-primary !text-[11px] !py-1.5">
+          </button>
+          <button
+            type="button"
+            className="btn-primary !py-1.5 !text-[11px]"
+            onClick={() => {
+              toast('正在生成图文报告…', 'info')
+              navigate('/insight/report')
+            }}
+          >
             一键生成图文报告 ✨
-          </Link>
+          </button>
         </div>
       </div>
     </div>

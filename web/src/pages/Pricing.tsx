@@ -1,60 +1,64 @@
 import { Link } from 'react-router-dom'
 import { Check, Gift, Shield, Star, Users, BarChart3 } from 'lucide-react'
 import { ProductTabs } from '../components/layout/ProductTabs'
-
-const plans = [
-  {
-    name: 'Free',
-    desc: '适合体验 Web3 AI 数据分析',
-    price: '$0',
-    period: '/ month',
-    icon: Gift,
-    color: 'orange',
-    features: ['基础自然语言查询', '热门问题模板', '基础图表', '基础报告摘要', '公开数据集'],
-    limits: ['5 queries / day', '3 charts / day', '1 report / day'],
-    cta: 'Start Free',
-    outline: true,
-  },
-  {
-    name: 'Pro',
-    desc: '适合研究员和链上分析师',
-    price: '$29',
-    period: '/ month',
-    icon: BarChart3,
-    color: 'orange',
-    popular: true,
-    features: ['自由提问', '意图识别', 'Text to SQL', '图表生成', '智能报告', '报告导出', '历史分析保存', '基础 Alpha Watchlist'],
-    limits: ['1,000 queries / month', '300 charts / month', '100 reports / month'],
-    cta: 'Start Pro',
-    outline: false,
-  },
-  {
-    name: 'Team',
-    desc: '适合协议方、VC 和研究团队',
-    price: '$199',
-    period: '/ month',
-    icon: Users,
-    color: 'violet',
-    features: ['团队空间', '共享看板', '定时日报 / 周报', '竞品监控', '数据需求卡', '权限管理', 'Webhook / Telegram 提醒'],
-    limits: ['5 seats included', '10,000 queries / month', '50 data requests / month'],
-    cta: 'Start Team',
-    outline: true,
-  },
-  {
-    name: 'Enterprise',
-    desc: '适合数据团队和机构客户',
-    price: 'Custom',
-    period: '',
-    icon: Shield,
-    color: 'orange',
-    features: ['私有数据源', '自定义指标', 'MOCE Data Agent', 'NL to Job', '血缘分析', 'AIOps', 'SLA 监控', '私有化部署', '专属支持'],
-    limits: [],
-    cta: 'Contact Sales',
-    outline: true,
-  },
-]
+import { useApp } from '../context/AppContext'
 
 export function Pricing() {
+  const { billing, setBilling, toast } = useApp()
+  const yearly = billing === 'yearly'
+
+  const plans = [
+    {
+      name: 'Free',
+      desc: '适合体验 Web3 AI 数据分析',
+      price: '$0',
+      period: yearly ? '/ year' : '/ month',
+      icon: Gift,
+      color: 'orange',
+      features: ['基础自然语言查询', '热门问题模板', '基础图表', '基础报告摘要', '公开数据集'],
+      limits: ['5 queries / day', '3 charts / day', '1 report / day'],
+      cta: 'Start Free',
+      outline: true,
+    },
+    {
+      name: 'Pro',
+      desc: '适合研究员和链上分析师',
+      price: yearly ? '$23' : '$29',
+      period: yearly ? '/ month · billed yearly' : '/ month',
+      icon: BarChart3,
+      color: 'orange',
+      popular: true,
+      features: ['自由提问', '意图识别', 'Text to SQL', '图表生成', '智能报告', '报告导出', '历史分析保存', '基础 Alpha Watchlist'],
+      limits: ['1,000 queries / month', '300 charts / month', '100 reports / month'],
+      cta: 'Start Pro',
+      outline: false,
+    },
+    {
+      name: 'Team',
+      desc: '适合协议方、VC 和研究团队',
+      price: yearly ? '$159' : '$199',
+      period: yearly ? '/ month · billed yearly' : '/ month',
+      icon: Users,
+      color: 'violet',
+      features: ['团队空间', '共享看板', '定时日报 / 周报', '竞品监控', '数据需求卡', '权限管理', 'Webhook / Telegram 提醒'],
+      limits: ['5 seats included', '10,000 queries / month', '50 data requests / month'],
+      cta: 'Start Team',
+      outline: true,
+    },
+    {
+      name: 'Enterprise',
+      desc: '适合数据团队和机构客户',
+      price: 'Custom',
+      period: '',
+      icon: Shield,
+      color: 'orange',
+      features: ['私有数据源', '自定义指标', 'MOCE Data Agent', 'NL to Job', '血缘分析', 'AIOps', 'SLA 监控', '私有化部署', '专属支持'],
+      limits: [] as string[],
+      cta: 'Contact Sales',
+      outline: true,
+    },
+  ]
+
   return (
     <div className="mx-auto max-w-[1100px]">
       <div className="mb-4 mt-1 flex justify-center">
@@ -69,8 +73,20 @@ export function Pricing() {
           从个人分析到团队协作，从数据生产到 Alpha 发现，按需选择 MOCE 能力。
         </p>
         <div className="mt-3 inline-flex items-center rounded-full border border-slate-200 bg-white p-1 text-[12px] shadow-sm">
-          <span className="rounded-full bg-orange-50 px-3 py-1 font-medium text-orange-600">Monthly</span>
-          <span className="px-3 py-1 text-slate-500">Yearly <span className="text-emerald-500">Save 20%</span></span>
+          <button
+            type="button"
+            className={`rounded-full px-3 py-1 font-medium ${!yearly ? 'bg-orange-50 text-orange-600' : 'text-slate-500'}`}
+            onClick={() => setBilling('monthly')}
+          >
+            Monthly
+          </button>
+          <button
+            type="button"
+            className={`rounded-full px-3 py-1 font-medium ${yearly ? 'bg-orange-50 text-orange-600' : 'text-slate-500'}`}
+            onClick={() => setBilling('yearly')}
+          >
+            Yearly <span className="text-emerald-500">Save 20%</span>
+          </button>
         </div>
       </div>
 
@@ -121,9 +137,11 @@ export function Pricing() {
             )}
             <div className="mt-auto">
               <button
+                type="button"
                 className={`w-full !py-2 text-[12.5px] ${
                   p.outline ? 'btn-orange-outline' : 'btn-primary'
                 }`}
+                onClick={() => toast(`${p.cta} — 已选择 ${p.name} 方案（Mock 结账）`, 'success')}
               >
                 {p.cta}
               </button>

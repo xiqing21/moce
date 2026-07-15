@@ -1,45 +1,51 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Moon, Sun } from 'lucide-react'
 import { MoceLogo } from '../ui/MoceLogo'
+import { useApp } from '../../context/AppContext'
 
 const NAV = [
   { label: '产品矩阵', path: '/' },
   { label: '解决方案', path: '/insight' },
   { label: '定价', path: '/pricing' },
-  { label: '文档', path: '#' },
+  { label: '文档', path: '/docs' },
 ]
 
 export function Header() {
   const { pathname } = useLocation()
+  const navigate = useNavigate()
+  const { dark, toggleDark, toast } = useApp()
 
   const isActive = (path: string) => {
     if (path === '/') return pathname === '/'
     if (path === '/pricing') return pathname.startsWith('/pricing') || pathname.startsWith('/compare')
-    if (path === '/insight') return pathname !== '/' && !pathname.startsWith('/pricing') && !pathname.startsWith('/compare')
+    if (path === '/docs') return pathname.startsWith('/docs')
+    if (path === '/insight')
+      return (
+        pathname !== '/' &&
+        !pathname.startsWith('/pricing') &&
+        !pathname.startsWith('/compare') &&
+        !pathname.startsWith('/docs')
+      )
     return false
   }
 
   return (
     <header className="relative z-50 flex h-14 items-center justify-between px-8">
-      <Link to="/" className="flex items-center gap-2.5 shrink-0">
+      <Link to="/" className="flex shrink-0 items-center gap-2.5">
         <MoceLogo />
         <div className="leading-tight">
-          <div className="text-[18px] font-extrabold tracking-tight">
-            <span className="text-moce-ink">MOCE</span>
-          </div>
-          <div className="text-[10px] text-slate-400 -mt-0.5">Ask. Analyze. Discover.</div>
+          <div className="text-[18px] font-extrabold tracking-tight text-moce-ink">MOCE</div>
+          <div className="-mt-0.5 text-[10px] text-slate-400">Ask. Analyze. Discover.</div>
         </div>
       </Link>
 
-      <nav className="absolute left-1/2 -translate-x-1/2 flex items-center gap-7">
+      <nav className="absolute left-1/2 flex -translate-x-1/2 items-center gap-7">
         {NAV.map((item) => (
           <Link
             key={item.label}
             to={item.path}
-            className={`text-[13.5px] font-medium transition-colors relative py-1 ${
-              isActive(item.path)
-                ? 'text-moce-orange'
-                : 'text-slate-600 hover:text-slate-900'
+            className={`relative py-1 text-[13.5px] font-medium transition-colors ${
+              isActive(item.path) ? 'text-moce-orange' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             {item.label}
@@ -48,19 +54,50 @@ export function Header() {
             )}
           </Link>
         ))}
-        <button className="text-[13.5px] font-medium text-slate-600 hover:text-slate-900">
+        <button
+          type="button"
+          className="text-[13.5px] font-medium text-slate-600 hover:text-slate-900"
+          onClick={() => toast('已打开登录面板（Mock）— 演示账号 demo@moce.ai', 'info')}
+        >
           登录
         </button>
-        <button className="btn-primary text-[13px] !px-4 !py-2 !rounded-lg">
+        <button
+          type="button"
+          className="btn-primary !rounded-lg !px-4 !py-2 text-[13px]"
+          onClick={() => {
+            toast('欢迎使用 MOCE，正在进入 Insight 工作台', 'success')
+            navigate('/insight')
+          }}
+        >
           开始使用
         </button>
       </nav>
 
       <div className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-1.5 py-1 shadow-sm">
-        <button className="flex h-6 w-6 items-center justify-center rounded-full bg-orange-50 text-moce-orange">
+        <button
+          type="button"
+          className={`flex h-6 w-6 items-center justify-center rounded-full ${
+            !dark ? 'bg-orange-50 text-moce-orange' : 'text-slate-400 hover:text-slate-600'
+          }`}
+          onClick={() => {
+            if (dark) toggleDark()
+            toast('已切换到浅色模式', 'info')
+          }}
+          aria-label="浅色"
+        >
           <Sun size={13} />
         </button>
-        <button className="flex h-6 w-6 items-center justify-center rounded-full text-slate-400 hover:text-slate-600">
+        <button
+          type="button"
+          className={`flex h-6 w-6 items-center justify-center rounded-full ${
+            dark ? 'bg-slate-800 text-amber-300' : 'text-slate-400 hover:text-slate-600'
+          }`}
+          onClick={() => {
+            if (!dark) toggleDark()
+            toast('已切换到深色模式（演示）', 'info')
+          }}
+          aria-label="深色"
+        >
           <Moon size={13} />
         </button>
       </div>

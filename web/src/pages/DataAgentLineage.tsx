@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import {
   CheckCircle2,
   Circle,
@@ -7,7 +8,8 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { ProductTabs } from '../components/layout/ProductTabs'
-import { StepBar } from '../components/ui/StepBar'
+import { AgentStepNav } from '../components/layout/AgentStepNav'
+import { useApp } from '../context/AppContext'
 
 const LAYERS = [
   {
@@ -55,23 +57,16 @@ const LAYERS = [
 ]
 
 export function DataAgentLineage() {
+  const navigate = useNavigate()
+  const { toast, selectedNode, setSelectedNode, setAgentStep } = useApp()
+
   return (
     <div className="mx-auto max-w-[1280px]">
       <div className="mb-3 mt-1 flex justify-center">
         <ProductTabs active="agent" />
       </div>
 
-      <StepBar
-        className="mb-4"
-        steps={[
-          { id: 1, label: '需求接收', status: 'done' },
-          { id: 2, label: '任务规划', status: 'done' },
-          { id: 3, label: 'NL to Job', status: 'active' },
-          { id: 4, label: '数仓分层', status: 'pending' },
-          { id: 5, label: '血缘分析', status: 'pending' },
-          { id: 6, label: '发布结果', status: 'pending' },
-        ]}
-      />
+      <AgentStepNav activeId={3} />
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-[220px_1fr_240px]">
         {/* Left */}
@@ -152,17 +147,22 @@ export function DataAgentLineage() {
                 </div>
                 <div className="flex flex-1 flex-wrap items-center gap-2">
                   {layer.nodes.map((n) => (
-                    <div
+                    <button
+                      type="button"
                       key={n.id}
-                      className={`rounded-lg border bg-white px-2.5 py-1.5 shadow-sm ${
-                        (n as { active?: boolean }).active
+                      onClick={() => {
+                        setSelectedNode(n.id)
+                        toast(`已选中血缘节点：${n.id}`, 'info')
+                      }}
+                      className={`rounded-lg border bg-white px-2.5 py-1.5 text-left shadow-sm transition hover:border-violet-300 ${
+                        selectedNode === n.id || (n as { active?: boolean }).active
                           ? 'border-violet-400 ring-2 ring-violet-200'
                           : 'border-slate-200'
                       }`}
                     >
                       <div className="text-[11px] font-semibold text-slate-800">{n.id}</div>
                       <div className="text-[9.5px] text-slate-400">{n.sub}</div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -193,10 +193,50 @@ export function DataAgentLineage() {
           </div>
 
           <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-            <button className="btn-outline !text-[12px]"><RefreshCw size={13} /> 重新生成方案</button>
-            <button className="btn-outline !text-[12px]"><Download size={13} /> 导出 DAG</button>
-            <button className="btn-primary !text-[12px]"><Rocket size={13} /> 部署新任务</button>
-            <button className="btn-outline !text-[12px]"><Sparkles size={13} className="text-violet-500" /> 发起新一轮优化</button>
+            <button
+              type="button"
+              className="btn-outline !text-[12px]"
+              onClick={() => {
+                toast('正在重新生成 NL to Job 方案…', 'info')
+                navigate('/data-agent/planning')
+              }}
+            >
+              <RefreshCw size={13} /> 重新生成方案
+            </button>
+            <button
+              type="button"
+              className="btn-outline !text-[12px]"
+              onClick={() => toast('DAG 已导出为 dag_20250518_0017.json（Mock）', 'success')}
+            >
+              <Download size={13} /> 导出 DAG
+            </button>
+            <button
+              type="button"
+              className="btn-outline !text-[12px]"
+              onClick={() => {
+                setAgentStep(4)
+                navigate('/data-agent/warehouse')
+              }}
+            >
+              下一步：数仓分层 →
+            </button>
+            <button
+              type="button"
+              className="btn-primary !text-[12px]"
+              onClick={() => {
+                setAgentStep(6)
+                navigate('/data-agent/deploy')
+              }}
+            >
+              <Rocket size={13} /> 部署新任务
+            </button>
+            <button
+              type="button"
+              className="btn-outline !text-[12px]"
+              onClick={() => toast('已发起新一轮优化建议（Mock）', 'info')}
+            >
+              <Sparkles size={13} className="text-violet-500" /> 发起新一轮优化
+            </button>
           </div>
         </div>
 
@@ -209,9 +249,9 @@ export function DataAgentLineage() {
             </button>
           </div>
           <div className="mb-2 rounded-lg border border-violet-200 bg-violet-50 px-2 py-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[11.5px] font-bold text-violet-700">dws_l2_tvl_compare_30d</span>
-              <span className="rounded bg-violet-500 px-1.5 py-0.5 text-[9px] text-white">当前选中</span>
+            <div className="flex items-center justify-between gap-1">
+              <span className="truncate text-[11.5px] font-bold text-violet-700">{selectedNode}</span>
+              <span className="shrink-0 rounded bg-violet-500 px-1.5 py-0.5 text-[9px] text-white">当前选中</span>
             </div>
           </div>
           <div className="space-y-1.5 text-[11.5px]">
